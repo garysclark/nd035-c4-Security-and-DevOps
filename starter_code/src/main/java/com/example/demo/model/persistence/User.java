@@ -1,5 +1,7 @@
 package com.example.demo.model.persistence;
 
+import java.util.Objects;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,6 +39,15 @@ public class User {
 	@JsonIgnore
     private Cart cart;
 	
+	public User(long id, String username, String password, Cart cart) {
+		this.id = id;
+		this.username = username;
+		this.password = password;
+	}
+
+	public User() {
+	}
+
 	public Cart getCart() {
 		return cart;
 	}
@@ -67,6 +78,24 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(cart, id, password, username);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		return Objects.equals(cart, other.cart) && id == other.id && Objects.equals(password, other.password)
+				&& Objects.equals(username, other.username);
 	}
 	
 	
