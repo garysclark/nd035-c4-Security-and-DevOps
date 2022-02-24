@@ -65,6 +65,20 @@
 			<artifactId>java-jwt</artifactId>
 			<version>3.18.3</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.github.hazendaz/javabean-tester -->
+		<dependency>
+			<groupId>com.github.hazendaz</groupId>
+			<artifactId>javabean-tester</artifactId>
+			<version>2.4.2</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.code.bean-matchers/bean-matchers -->
+		<dependency>
+			<groupId>com.google.code.bean-matchers</groupId>
+			<artifactId>bean-matchers</artifactId>
+			<version>0.13</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

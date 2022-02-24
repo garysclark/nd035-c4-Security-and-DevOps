@@ -15,7 +15,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,17 +103,14 @@ public class UserControllerIntegrationTests {
 		
 		LoginUser loginUser = new LoginUser(TEST_USERNAME, TEST_PASSWORD);
 		String authenticationBody = getBody(loginUser);
-		HttpHeaders authenticationHeaders = getHeaders();
-		HttpEntity<String> authenticationEntity = new HttpEntity<String>(authenticationBody,
-				authenticationHeaders);
-		ResponseEntity<String> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationEntity, String.class);
+		ResponseEntity<String> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationBody, String.class);
 		
 		assertNotNull(loginResponse);
 		assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
 		List<String> authorizations = loginResponse.getHeaders().get("Authorization");
 		assertNotNull(authorizations);
 
-		HttpHeaders headers = getHeaders();
+		HttpHeaders headers = new HttpHeaders();
 		headers.set("Authorization", authorizations.get(0));
 		HttpEntity<String> jwtEntity = new HttpEntity<String>(headers);
 		// Use Token to get Response
@@ -123,14 +119,9 @@ public class UserControllerIntegrationTests {
 		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
 		assertEquals(user.getId(), userResponse.getBody().getId());
 		assertEquals(user.getUsername(), userResponse.getBody().getUsername());
+		
+		
 }
-	
-	private HttpHeaders getHeaders() {
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-		headers.set("Accept", MediaType.APPLICATION_JSON_VALUE);
-		return headers;
-	}
 
 	private String getBody(final LoginUser loginUser) throws JsonProcessingException{
 		return new ObjectMapper().writeValueAsString(loginUser);

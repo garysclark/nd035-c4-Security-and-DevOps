@@ -3,6 +3,7 @@ package com.example.demo.model.persistence;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -90,5 +91,23 @@ public class Cart {
 			total = new BigDecimal(0);
 		}
 		total = total.subtract(item.getPrice());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, items, total, user);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Cart other = (Cart) obj;
+		return Objects.equals(id, other.id) && Objects.equals(items, other.items) && Objects.equals(total, other.total)
+				&& Objects.equals(user, other.user);
 	}
 }
