@@ -11,7 +11,7 @@ public class UserOrderTests {
 	
 	@Test
     public void testBean() {
-    	BeanTestUtils.test(UserOrder.class);
+    	BeanTestUtils.testBean(UserOrder.class);
     }
 
 	@Test

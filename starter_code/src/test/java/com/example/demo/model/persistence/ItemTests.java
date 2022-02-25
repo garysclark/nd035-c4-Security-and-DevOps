@@ -15,7 +15,7 @@ public class ItemTests {
 	
 	@Test
     public void testBean() {
-    	BeanTestUtils.test(Item.class);
+    	BeanTestUtils.testBean(Item.class);
     }
 	
 	public static Item getTestItem() {

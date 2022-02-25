@@ -11,7 +11,7 @@ public final class BeanTestUtils {
 
 	private BeanTestUtils() {}
 	
-	public static void test(Class<?> beanClass) {
+	public static void testBean(Class<?> beanClass) {
         assertThat(beanClass, allOf(
                 hasValidBeanConstructor(),
                 hasValidGettersAndSetters(),

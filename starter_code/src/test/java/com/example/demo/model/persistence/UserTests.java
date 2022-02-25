@@ -12,7 +12,7 @@ public class UserTests {
 
 	@Test
     public void testBean() {
-    	BeanTestUtils.test(User.class);
+    	BeanTestUtils.testBean(User.class);
     }
 
 	public static User getTestUser() {

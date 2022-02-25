@@ -14,7 +14,7 @@ public class CartTests {
 
 	@Test
     public void testBean() {
-    	BeanTestUtils.test(Cart.class);
+    	BeanTestUtils.testBean(Cart.class);
     }
 
 	@Test
