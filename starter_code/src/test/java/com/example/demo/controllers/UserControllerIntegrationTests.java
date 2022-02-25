@@ -72,39 +72,39 @@ public class UserControllerIntegrationTests {
 	public void canAccessController() {
 		assertNotNull(userController);
 	}
-	
+
 	@Test
 	public void canCreateUser() {
 		CreateUserRequest request = new CreateUserRequest();
 		request.setUsername(TEST_USERNAME);
 		request.setPassword(TEST_PASSWORD);
 		request.setConfirmPassword(TEST_PASSWORD);
-		
+
 		ResponseEntity<User> response = userController.createUser(request);
-		
+
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		User user = response.getBody();
 		assertEquals(TEST_USERNAME, user.getUsername());
 	}
-	
+
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
 		CreateUserRequest request = new CreateUserRequest();
 		request.setUsername(TEST_USERNAME);
 		request.setPassword(TEST_PASSWORD);
 		request.setConfirmPassword(TEST_PASSWORD);
-		
+
 		ResponseEntity<User> response = restTemplate.postForEntity("http://localhost:" + port + "/api/user/create", request, User.class);
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		User user = response.getBody();
 		assertEquals(TEST_USERNAME, user.getUsername());
-		
+
 		LoginUser loginUser = new LoginUser(TEST_USERNAME, TEST_PASSWORD);
 		String authenticationBody = getBody(loginUser);
 		ResponseEntity<String> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationBody, String.class);
-		
+
 		assertNotNull(loginResponse);
 		assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
 		List<String> authorizations = loginResponse.getHeaders().get("Authorization");
@@ -119,9 +119,9 @@ public class UserControllerIntegrationTests {
 		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
 		assertEquals(user.getId(), userResponse.getBody().getId());
 		assertEquals(user.getUsername(), userResponse.getBody().getUsername());
-		
-		
-}
+
+
+	}
 
 	private String getBody(final LoginUser loginUser) throws JsonProcessingException{
 		return new ObjectMapper().writeValueAsString(loginUser);

@@ -1,7 +1,5 @@
 package com.example.demo.model.persistence;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 
 import com.example.demo.utils.BeanTestUtils;
@@ -16,17 +14,19 @@ public class UserTests {
     public void testBean() {
     	BeanTestUtils.test(User.class);
     }
-    
-    @Test
-    public void canCreateWithAttributes() {
-    	User user = getTestUser();
-    	assertEquals(TEST_ID, user.getId());
-    	assertEquals(TEST_USERNAME, user.getUsername());
-    	assertEquals(TEST_PASSWORD, user.getPassword());
-    	assertEquals(TEST_CART, user.getCart());
-    }
 
 	public static User getTestUser() {
-    	return new User(TEST_ID, TEST_USERNAME, TEST_PASSWORD, TEST_CART);
+    	return getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, TEST_CART);
+	}
+
+	public static User getTestUser(long id, String username, String password,
+			Cart cart) {
+		User user = new User();
+		user.setId(id);
+		user.setUsername(username);
+		user.setPassword(password);
+		cart.setUser(user);
+		user.setCart(cart);
+		return user;
 	}
 }

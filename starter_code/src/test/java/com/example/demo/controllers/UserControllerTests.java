@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
+import com.example.demo.model.persistence.UserTests;
 import com.example.demo.model.persistence.repositories.CartRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
@@ -24,7 +25,7 @@ public class UserControllerTests {
 
 	private static final String TEST_USERNAME = "testUser";
 	private static final String TEST_PASSWORD = "testpassword";
-	private static final Long TEST_ID = 99l;
+	private static final Long TEST_CART_ID = 0l;
 	private static final String TEST_ENCRYPTED_PASSWORD = "encryptedpassword";
 	private static final long TEST_NEW_USER_ID = 0l;
 
@@ -54,9 +55,9 @@ public class UserControllerTests {
 	public void canCreateUser() {
 		Cart cart = new Cart();
 		Cart savedCart = new Cart();
-		savedCart.setId(TEST_ID);
-		User user = new User(TEST_NEW_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, savedCart);
-		User savedUser = new User(TEST_NEW_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, savedCart);
+		savedCart.setId(TEST_CART_ID);
+		User user = UserTests.getTestUser(TEST_NEW_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, savedCart);
+		User savedUser = UserTests.getTestUser(TEST_NEW_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, savedCart);
 		assertEquals(user, savedUser);
 		
 		when(mockCartRepository.save(cart)).thenReturn(savedCart);

@@ -9,6 +9,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public final class BeanTestUtils {
 
+	private BeanTestUtils() {}
+	
 	public static void test(Class<?> beanClass) {
         assertThat(beanClass, allOf(
                 hasValidBeanConstructor(),
