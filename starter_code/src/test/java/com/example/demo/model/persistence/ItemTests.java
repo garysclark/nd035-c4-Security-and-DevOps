@@ -12,6 +12,7 @@ public class ItemTests {
 	private static final String TEST_NAME = "Test Item";
 	private static final BigDecimal TEST_PRICE = new BigDecimal("9.99");
 	private static final String TEST_DESCRIPTION = "Test item description";
+	
 	@Test
     public void testBean() {
     	BeanTestUtils.test(Item.class);
