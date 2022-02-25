@@ -30,12 +30,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Transactional
 public class UserControllerIntegrationTests {
 
-	public class LoginUser {
+	public class LoginUserRequest {
 
 		private String username;
 		private String password;
 
-		public LoginUser(String username, String password) {
+		public LoginUserRequest(String username, String password) {
 			this.username = username;
 			this.password = password;
 		}
@@ -44,16 +44,8 @@ public class UserControllerIntegrationTests {
 			return username;
 		}
 
-		public void setUsername(String username) {
-			this.username = username;
-		}
-
 		public String getPassword() {
 			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
 		}
 
 	}
@@ -101,7 +93,7 @@ public class UserControllerIntegrationTests {
 		User user = response.getBody();
 		assertEquals(TEST_USERNAME, user.getUsername());
 
-		LoginUser loginUser = new LoginUser(TEST_USERNAME, TEST_PASSWORD);
+		LoginUserRequest loginUser = new LoginUserRequest(TEST_USERNAME, TEST_PASSWORD);
 		String authenticationBody = getBody(loginUser);
 		ResponseEntity<String> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationBody, String.class);
 
@@ -123,7 +115,7 @@ public class UserControllerIntegrationTests {
 
 	}
 
-	private String getBody(final LoginUser loginUser) throws JsonProcessingException{
+	private String getBody(final LoginUserRequest loginUser) throws JsonProcessingException{
 		return new ObjectMapper().writeValueAsString(loginUser);
 	}
 
