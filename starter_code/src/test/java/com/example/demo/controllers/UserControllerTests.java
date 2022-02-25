@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,6 @@ import com.example.demo.model.requests.CreateUserRequest;
 
 public class UserControllerTests {
 
-	private static final long TEST_SAVED_USER_ID = 1l;
 	private static final String TEST_USERNAME = "testUser";
 	private static final String TEST_PASSWORD = "testpassword";
 	private static final Long TEST_ID = 99l;

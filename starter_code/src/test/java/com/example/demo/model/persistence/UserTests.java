@@ -10,7 +10,7 @@ public class UserTests {
     private static final long TEST_ID = 0;
 	private static final String TEST_USERNAME = "testUsername";
 	private static final String TEST_PASSWORD = "testPassword";
-	private static final Cart TEST_CART = new Cart();
+	private static final Cart TEST_CART = CartTests.getTestCart();
 
 	@Test
     public void testBean() {
