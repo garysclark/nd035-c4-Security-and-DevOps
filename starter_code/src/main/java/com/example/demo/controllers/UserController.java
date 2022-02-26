@@ -12,11 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
-import com.example.demo.model.persistence.repositories.CartRepository;
-import com.example.demo.model.persistence.repositories.UserRepository;
 import com.example.demo.model.requests.CreateUserRequest;
+import com.example.demo.services.UserService;
 
 @RestController
 @RequestMapping("/api/user")
@@ -25,22 +23,20 @@ public class UserController {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
-	private UserRepository userRepository;
-	
-	@Autowired
-	private CartRepository cartRepository;
-	
-	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+	@Autowired
+	private UserService userService;
 
 	@GetMapping("/id/{id}")
 	public ResponseEntity<User> findById(@PathVariable Long id) {
-		return ResponseEntity.of(userRepository.findById(id));
+		User user = userService.findUserById(id);
+		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
 	}
 	
 	@GetMapping("/{username}")
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
-		User user = userRepository.findByUsername(username);
+		User user = userService.findUserByUserName(username);
 		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
 	}
 	
@@ -49,9 +45,6 @@ public class UserController {
 		logger.info("Creating user {}", createUserRequest.getUsername());
 		User user = new User();
 		user.setUsername(createUserRequest.getUsername());
-		Cart cart = new Cart();
-		Cart savedCart = cartRepository.save(cart);
-		user.setCart(savedCart);
 		
 		if(createUserRequest.getPassword().length() < 7 ||
 				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
@@ -61,7 +54,7 @@ public class UserController {
 		
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		
-		User savedUser = userRepository.save(user);
+		User savedUser = userService.saveUser(user);
 		return ResponseEntity.ok(savedUser);
 	}
 	

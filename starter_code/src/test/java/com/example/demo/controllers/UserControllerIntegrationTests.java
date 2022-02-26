@@ -59,6 +59,8 @@ public class UserControllerIntegrationTests {
 
 	@LocalServerPort
 	private int port;
+	private User testUser;
+	private HttpEntity<String> testJwtEntity;
 
 	@Test
 	public void canAccessController() {
@@ -67,12 +69,7 @@ public class UserControllerIntegrationTests {
 
 	@Test
 	public void canCreateUser() {
-		CreateUserRequest request = new CreateUserRequest();
-		request.setUsername(TEST_USERNAME);
-		request.setPassword(TEST_PASSWORD);
-		request.setConfirmPassword(TEST_PASSWORD);
-
-		ResponseEntity<User> response = userController.createUser(request);
+		ResponseEntity<User> response = createUser();
 
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -82,37 +79,78 @@ public class UserControllerIntegrationTests {
 
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
+		createUser();
+
+		ResponseEntity<String> loginResponse = loginUser();
+
+		assertNotNull(loginResponse);
+		assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
+		List<String> authorizations = loginResponse.getHeaders().get("Authorization");
+		assertNotNull(authorizations);
+	}
+	
+	@Test
+	public void canGetUserById() throws JsonProcessingException {
+		createAndAuthorizeUser();
+
+		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + testUser.getId(), HttpMethod.GET, testJwtEntity,
+				User.class);
+
+		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
+		assertEquals(testUser.getId(), userResponse.getBody().getId());
+		assertEquals(testUser.getUsername(), userResponse.getBody().getUsername());
+	}
+	
+	@Test
+	public void canHandleGetUserByInvalidId() throws JsonProcessingException {
+		createAndAuthorizeUser();
+
+		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + testUser.getId() + 1l, HttpMethod.GET, testJwtEntity,
+				User.class);
+
+		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
+	}
+	
+	@Test
+	public void canGetUserByUsername() throws JsonProcessingException {
+		createAndAuthorizeUser();
+
+		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/" + testUser.getUsername(), HttpMethod.GET, testJwtEntity,
+				User.class);
+
+		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
+		assertEquals(testUser.getId(), userResponse.getBody().getId());
+		assertEquals(testUser.getUsername(), userResponse.getBody().getUsername());
+	}
+
+	private void createAndAuthorizeUser() throws JsonProcessingException {
+		ResponseEntity<User> createResponse = createUser();
+		testUser = createResponse.getBody();
+
+		ResponseEntity<String> loginResponse = loginUser();
+
+		List<String> authorizations = loginResponse.getHeaders().get("Authorization");
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Authorization", authorizations.get(0));
+
+		testJwtEntity = new HttpEntity<String>(headers);
+	}
+
+	private ResponseEntity<String> loginUser() throws JsonProcessingException {
+		LoginUserRequest request = new LoginUserRequest(TEST_USERNAME, TEST_PASSWORD);
+		String authenticationBody = getBody(request);
+		ResponseEntity<String> response = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationBody, String.class);
+		return response;
+	}
+
+	private ResponseEntity<User> createUser() {
 		CreateUserRequest request = new CreateUserRequest();
 		request.setUsername(TEST_USERNAME);
 		request.setPassword(TEST_PASSWORD);
 		request.setConfirmPassword(TEST_PASSWORD);
 
 		ResponseEntity<User> response = restTemplate.postForEntity("http://localhost:" + port + "/api/user/create", request, User.class);
-		assertNotNull(response);
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		User user = response.getBody();
-		assertEquals(TEST_USERNAME, user.getUsername());
-
-		LoginUserRequest loginUser = new LoginUserRequest(TEST_USERNAME, TEST_PASSWORD);
-		String authenticationBody = getBody(loginUser);
-		ResponseEntity<String> loginResponse = restTemplate.postForEntity("http://localhost:" + port + "/login", authenticationBody, String.class);
-
-		assertNotNull(loginResponse);
-		assertEquals(HttpStatus.OK, loginResponse.getStatusCode());
-		List<String> authorizations = loginResponse.getHeaders().get("Authorization");
-		assertNotNull(authorizations);
-
-		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", authorizations.get(0));
-		HttpEntity<String> jwtEntity = new HttpEntity<String>(headers);
-		// Use Token to get Response
-		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + user.getId(), HttpMethod.GET, jwtEntity,
-				User.class);
-		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
-		assertEquals(user.getId(), userResponse.getBody().getId());
-		assertEquals(user.getUsername(), userResponse.getBody().getUsername());
-
-
+		return response;
 	}
 
 	private String getBody(final LoginUserRequest loginUser) throws JsonProcessingException{

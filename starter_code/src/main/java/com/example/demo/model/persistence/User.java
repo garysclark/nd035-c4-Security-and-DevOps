@@ -24,7 +24,7 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@JsonProperty
-	private long id;
+	private Long id;
 	
 	@Column(nullable = false, unique = true)
 	@JsonProperty
@@ -47,11 +47,11 @@ public class User {
 		this.cart = cart;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -85,8 +85,8 @@ public class User {
 		if (getClass() != obj.getClass())
 			return false;
 		User other = (User) obj;
-		return Objects.equals(cart, other.cart) && id == other.id && Objects.equals(password, other.password)
-				&& Objects.equals(username, other.username);
+		return Objects.equals(cart, other.cart) && Objects.equals(id, other.id)
+				&& Objects.equals(password, other.password) && Objects.equals(username, other.username);
 	}
 	
 	

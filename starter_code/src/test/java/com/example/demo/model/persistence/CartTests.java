@@ -10,7 +10,7 @@ import com.example.demo.utils.BeanTestUtils;
 
 public class CartTests {
 
-	private static final Long TEST_ID = 0l;
+	public static final Long TEST_ID = 99l;
 
 	@Test
     public void testBean() {

@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
@@ -11,6 +12,7 @@ import com.example.demo.model.persistence.repositories.CartRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 
 @Service
+@Transactional
 public class UserService {
 
 	@Autowired
@@ -26,9 +28,16 @@ public class UserService {
 		return userRepository.save(user);
 	}
 
-	public User findUserById(long id) {
+	public User findUserById(Long id) {
 		Optional<User> optionalUser = userRepository.findById(id);
+		if(optionalUser.isEmpty()) {
+			return null;
+		}
 		return optionalUser.get();
+	}
+
+	public User findUserByUserName(String username) {
+		return userRepository.findByUsername(username);
 	}
 
 }
