@@ -10,28 +10,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.persistence.Item;
-import com.example.demo.model.persistence.repositories.ItemRepository;
+import com.example.demo.services.ItemService;
 
 @RestController
 @RequestMapping("/api/item")
 public class ItemController {
-
+	
 	@Autowired
-	private ItemRepository itemRepository;
+	private ItemService itemService;
 	
 	@GetMapping
 	public ResponseEntity<List<Item>> getItems() {
-		return ResponseEntity.ok(itemRepository.findAll());
+		return ResponseEntity.ok(itemService.findAllItems());
 	}
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Item> getItemById(@PathVariable Long id) {
-		return ResponseEntity.of(itemRepository.findById(id));
+		return ResponseEntity.ok(itemService.findItemById(id));
 	}
 	
 	@GetMapping("/name/{name}")
 	public ResponseEntity<List<Item>> getItemsByName(@PathVariable String name) {
-		List<Item> items = itemRepository.findByName(name);
+		List<Item> items = itemService.findItemsByName(name);
 		return items == null || items.isEmpty() ? ResponseEntity.notFound().build()
 				: ResponseEntity.ok(items);
 			

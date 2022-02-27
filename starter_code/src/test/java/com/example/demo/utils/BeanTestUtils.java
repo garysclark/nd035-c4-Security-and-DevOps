@@ -16,7 +16,15 @@ public final class BeanTestUtils {
                 hasValidBeanConstructor(),
                 hasValidGettersAndSetters(),
                 hasValidBeanHashCode(),
-                hasValidBeanEquals()));
+                hasValidBeanEquals()
+                ));
+	}
+
+	public static void testSimpleBean(Class<?> beanClass) {
+        assertThat(beanClass, allOf(
+                hasValidBeanConstructor(),
+                hasValidGettersAndSetters()
+                ));
 	}
 
 }

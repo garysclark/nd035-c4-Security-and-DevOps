@@ -105,8 +105,8 @@ public class UserControllerIntegrationTests {
 	public void canHandleGetUserByInvalidId() throws JsonProcessingException {
 		createAndAuthorizeUser();
 
-		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + testUser.getId() + 1l, HttpMethod.GET, testJwtEntity,
-				User.class);
+		ResponseEntity<String> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + testUser.getId() + 1l, HttpMethod.GET, testJwtEntity,
+				String.class);
 
 		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
 	}

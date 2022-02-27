@@ -2,9 +2,12 @@ package com.example.demo.services;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,7 @@ public class UserServiceTests {
 	private static final String TEST_USERNAME = "testusername";
 	private static final String TEST_PASSWORD = "password";
 	private static final Long TEST_USER_ID = 1l;
+	private static final Long TEST_INVALID_ID = 99l;
 	@Mock
 	private CartRepository mockCartRepository;
 	@Mock
@@ -84,6 +88,13 @@ public class UserServiceTests {
 		
 		assertNotNull(foundUser);
 		assertEquals(repoUser, foundUser);
+	}
+	
+	@Test
+	public void canHandleUserNotFoundById() {
+		when(mockUserRepository.findById(TEST_INVALID_ID)).thenReturn(Optional.ofNullable(null));
+
+		assertThrows(EntityNotFoundException.class, ()->{userService.findUserById(TEST_INVALID_ID);});
 	}
 
 	private User createUser(Long id, String username, String password, Cart cart) {

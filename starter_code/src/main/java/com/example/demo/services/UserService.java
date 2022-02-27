@@ -2,6 +2,8 @@ package com.example.demo.services;
 
 import java.util.Optional;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ public class UserService {
 	public User findUserById(Long id) {
 		Optional<User> optionalUser = userRepository.findById(id);
 		if(optionalUser.isEmpty()) {
-			return null;
+			throw new EntityNotFoundException("User not found with Id: " + id);
 		}
 		return optionalUser.get();
 	}
