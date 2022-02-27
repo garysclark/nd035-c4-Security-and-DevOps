@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -34,18 +35,22 @@ import com.example.demo.services.UserService;
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
 public class UserControllerMvcTests {
-	private static final String TEST_USERNAME = "testusername";
-	private static final String TEST_PASSWORD = "testpassword";
-	private static final String TEST_ENCRYPTED_PASSWORD = "testencryptedpassword";
+	private static final String FIND_USER_BY_ID_ENDPOINT = "/api/user/id/";
+	private static final String CREATE_USER_ENDPOINT = "/api/user/create";
+	private static final String TEST_USERNAME = "testUsername";
+	private static final String TEST_PASSWORD = "testPassword";
+	private static final String TEST_UNMATCHED_PASSWORD = "testUnmatchedPassword";
+	private static final String TEST_ENCRYPTED_PASSWORD = "testEncryptedPassword";
 	private static final Long TEST_ID = 1l;
-	private static final Long TEST_INVALID_ID = 2l;
+	private static final String TEST_INVALID_PASSWORD = "badpwd";
+	private static final String FIND_USER_BY_USERNAME_ENDPOINT = "/api/user/";
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@Autowired
 	private JacksonTester<CreateUserRequest> json;
-	
+
 	@Autowired
 	private UserController userController;
 
@@ -64,57 +69,105 @@ public class UserControllerMvcTests {
 	public void canCreateUser() throws URISyntaxException, IOException, Exception {
 		User user = UserTests.getTestUser(null, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, null);
 		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
-		CreateUserRequest request = new CreateUserRequest();
-		request.setUsername(TEST_USERNAME);
-		request.setPassword(TEST_PASSWORD);
-		request.setConfirmPassword(TEST_PASSWORD);
-
-		BDDMockito.given(mockUserService.saveUser(user)).willReturn(savedUser);
 		BDDMockito.given(mockBCryptPasswordEncoder.encode(TEST_PASSWORD)).willReturn(TEST_ENCRYPTED_PASSWORD);
+		BDDMockito.given(mockUserService.saveUser(user)).willReturn(savedUser);
 
-		ResultActions resultActions = mockMvc.perform(
-				post(new URI("/api/user/create"))
-				.content(json.write(request).getJson())
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-		
-		assertNotNull(resultActions);
-		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-		assertNotNull(contentAsString);
-		resultActions.andExpect(jsonPath("$.id").value(TEST_ID));
-		resultActions.andExpect(jsonPath("$.username").value(request.getUsername()));
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
 	}
-	
+
+	@Test
+	public void canHandleInvalidPassword() throws URISyntaxException, IOException, Exception {
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void canHandleUnmatchedPassword() throws URISyntaxException, IOException, Exception {
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isBadRequest());
+	}
+
 	@WithMockUser
 	@Test
 	public void canFindUserById() throws URISyntaxException, IOException, Exception {
 		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
-
 		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willReturn(savedUser);
 
-		ResultActions resultActions = mockMvc.perform(
-				get(new URI("/api/user/id/" + TEST_ID))
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk());
-		
-		assertNotNull(resultActions);
-		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-		assertNotNull(contentAsString);
-		resultActions.andExpect(jsonPath("$.id").value(savedUser.getId()));
-		resultActions.andExpect(jsonPath("$.username").value(savedUser.getUsername()));
+		ResultActions resultActions = performGetAction(FIND_USER_BY_ID_ENDPOINT + TEST_ID);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
 	}
-	
+
 	@WithMockUser
 	@Test
 	public void canHandleFindUserByInvalidId() throws URISyntaxException, Exception {
-		BDDMockito.given(mockUserService.findUserById(TEST_INVALID_ID)).willReturn(null);
+		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willReturn(null);
 
-		mockMvc.perform(
-				get(new URI("/api/user/id/" + TEST_ID))
+		ResultActions resultActions = performGetAction(FIND_USER_BY_ID_ENDPOINT + TEST_ID);
+		resultActions.andExpect(status().isNotFound());
+	}
+
+	@WithMockUser
+	@Test
+	public void canFindUserByUserName() throws URISyntaxException, Exception {
+		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
+
+		BDDMockito.given(mockUserService.findUserByUserName(TEST_USERNAME)).willReturn(savedUser);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_USERNAME_ENDPOINT + TEST_USERNAME);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
+	}
+
+	@WithMockUser
+	@Test
+	public void canHandleFindByInvalidUserName() throws URISyntaxException, Exception {
+		BDDMockito.given(mockUserService.findUserByUserName(TEST_USERNAME)).willReturn(null);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_USERNAME_ENDPOINT + TEST_USERNAME);
+		resultActions.andExpect(status().isNotFound());
+	}
+
+	private CreateUserRequest createUserRequest(String username, String password, String confirmPassword) {
+		CreateUserRequest request = new CreateUserRequest();
+		request.setUsername(username);
+		request.setPassword(password);
+		request.setConfirmPassword(confirmPassword);
+		return request;
+	}
+
+	private ResultActions performPostAction(CreateUserRequest request, String endPoint)
+			throws Exception, URISyntaxException, IOException {
+		ResultActions resultActions = mockMvc.perform(
+				post(new URI(endPoint))
+				.content(json.write(request).getJson())
 				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON))
-				.andExpect(status().isNotFound());
+				.accept(MediaType.APPLICATION_JSON));
+		return resultActions;
+	}
+
+	private ResultActions performGetAction(String endPoint) throws Exception, URISyntaxException {
+		ResultActions resultActions = mockMvc.perform(
+				get(new URI(endPoint))
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON));
+		return resultActions;
+	}
+
+	private void validateUserResponse(User user, ResultActions resultActions)
+			throws UnsupportedEncodingException, Exception {
+		assertNotNull(resultActions);
+		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+		assertNotNull(contentAsString);
+		resultActions.andExpect(jsonPath("$.id").value(user.getId()));
+		resultActions.andExpect(jsonPath("$.username").value(user.getUsername()));
 	}
 }
