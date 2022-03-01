@@ -1,19 +1,29 @@
 package com.example.demo.controllers;
 
-
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.mockito.BDDMockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
@@ -21,136 +31,143 @@ import com.example.demo.model.persistence.UserTests;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.services.UserService;
 
+@SpringBootTest
+@AutoConfigureMockMvc
+@AutoConfigureJsonTesters
 public class UserControllerTests {
-
-	private static final String TEST_USERNAME = "testUser";
-	private static final String TEST_PASSWORD = "testpassword";
-	private static final Long TEST_CART_ID = 1l;
-	private static final String TEST_ENCRYPTED_PASSWORD = "encryptedpassword";
-	private static final Long TEST_USER_ID = 1l;
+	private static final String FIND_USER_BY_ID_ENDPOINT = "/api/user/id/";
+	private static final String CREATE_USER_ENDPOINT = "/api/user/create";
+	private static final String TEST_USERNAME = "testUsername";
+	private static final String TEST_PASSWORD = "testPassword";
+	private static final String TEST_UNMATCHED_PASSWORD = "testUnmatchedPassword";
+	private static final String TEST_ENCRYPTED_PASSWORD = "testEncryptedPassword";
+	private static final Long TEST_ID = 1l;
 	private static final String TEST_INVALID_PASSWORD = "badpwd";
-	private static final String TEST_UNMATCHED_PASSWORD = "unmatchedpassword";
-	private static final long TEST_INVALID_USER_ID = 99l;
-	private static final String TEST_INVALID_USERNAME = "invalidUsername";
-	
-	@Mock
+	private static final String FIND_USER_BY_USERNAME_ENDPOINT = "/api/user/";
+
+	@Autowired
+	private MockMvc mockMvc;
+
+	@Autowired
+	private JacksonTester<CreateUserRequest> json;
+
+	@Autowired
+	private UserController userController;
+
+	@MockBean
+	private UserService mockUserService;
+
+	@MockBean
 	private BCryptPasswordEncoder mockBCryptPasswordEncoder;
 
-	@Mock
-	private UserService mockUserService;
-	
-	@InjectMocks
-	private UserController userController = new UserController();
-	private AutoCloseable autoCloseable;
-
-	@BeforeEach
-	public void beforeEach() {
-		autoCloseable = MockitoAnnotations.openMocks(this);
-	}
-	
-	@AfterEach
-	public void afterEach() throws Exception {
-		autoCloseable.close();
-	}
-	
 	@Test
 	public void canAccessController() {
 		assertNotNull(userController);
 	}
-	
-	@Test
-	public void canFindUserById() {
-		User user = UserTests.getTestUser(TEST_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, getCart(TEST_CART_ID));
-		when(mockUserService.findUserById(TEST_USER_ID)).thenReturn(user);
-
-		ResponseEntity<User> response = userController.findById(TEST_USER_ID);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(user, response.getBody());
-	}
-	
-	@Test
-	public void canHandleFindByInvalidUserId() {
-		when(mockUserService.findUserById(TEST_INVALID_USER_ID)).thenReturn(null);
-
-		ResponseEntity<User> response = userController.findById(TEST_INVALID_USER_ID);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-	}
-	
-	@Test
-	public void canFindUserByUsername() {
-		User user = UserTests.getTestUser(TEST_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, getCart(TEST_CART_ID));
-		when(mockUserService.findUserByUserName(TEST_USERNAME)).thenReturn(user);
-
-		ResponseEntity<User> response = userController.findByUserName(TEST_USERNAME);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(user, response.getBody());
-	}
-	
-	@Test
-	public void canHandleFindByInvalidUserName() {
-		when(mockUserService.findUserByUserName(TEST_INVALID_USERNAME)).thenReturn(null);
-
-		ResponseEntity<User> response = userController.findByUserName(TEST_INVALID_USERNAME);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-	}
-
-	private Cart getCart(Long id) {
-		Cart cart = new Cart();
-		cart.setId(id);
-		return cart;
-	}
 
 	@Test
-	public void canCreateUser() {
-		Cart savedCart = getCart(TEST_CART_ID);
+	public void canCreateUser() throws URISyntaxException, IOException, Exception {
 		User user = UserTests.getTestUser(null, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, null);
-		User savedUser = UserTests.getTestUser(TEST_USER_ID, TEST_USERNAME, TEST_ENCRYPTED_PASSWORD, savedCart);
-		
-		when(mockUserService.saveUser(user)).thenReturn(savedUser);
-		when(mockBCryptPasswordEncoder.encode(TEST_PASSWORD)).thenReturn(TEST_ENCRYPTED_PASSWORD);
+		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
+		BDDMockito.given(mockBCryptPasswordEncoder.encode(TEST_PASSWORD)).willReturn(TEST_ENCRYPTED_PASSWORD);
+		BDDMockito.given(mockUserService.saveUser(user)).willReturn(savedUser);
 
-		CreateUserRequest request = getRequest(TEST_USERNAME, TEST_PASSWORD, TEST_PASSWORD);
-		
-		ResponseEntity<User> response = userController.createUser(request);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals(savedUser, response.getBody());
-	}
-	
-	@Test
-	public void canHandleInvalidPassword() {
-		CreateUserRequest request = getRequest(TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
-		
-		ResponseEntity<User> response = userController.createUser(request);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-	}
-	
-	@Test
-	public void canHandleUnmatchedPasswords() {
-		CreateUserRequest request = getRequest(TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
-		
-		ResponseEntity<User> response = userController.createUser(request);
-		
-		assertNotNull(response);
-		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
 	}
 
-	private CreateUserRequest getRequest(String username, String password, String confirmPassword) {
+	@Test
+	public void canHandleInvalidPassword() throws URISyntaxException, IOException, Exception {
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	public void canHandleUnmatchedPassword() throws URISyntaxException, IOException, Exception {
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isBadRequest());
+	}
+
+	@WithMockUser
+	@Test
+	public void canFindUserById() throws URISyntaxException, IOException, Exception {
+		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
+		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willReturn(savedUser);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_ID_ENDPOINT + TEST_ID);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
+	}
+
+	@WithMockUser
+	@Test
+	public void canHandleFindUserByInvalidId() throws URISyntaxException, Exception {
+		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willReturn(null);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_ID_ENDPOINT + TEST_ID);
+		resultActions.andExpect(status().isNotFound());
+	}
+
+	@WithMockUser
+	@Test
+	public void canFindUserByUserName() throws URISyntaxException, Exception {
+		User savedUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
+
+		BDDMockito.given(mockUserService.findUserByUserName(TEST_USERNAME)).willReturn(savedUser);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_USERNAME_ENDPOINT + TEST_USERNAME);
+		resultActions.andExpect(status().isOk());
+
+		validateUserResponse(savedUser, resultActions);
+	}
+
+	@WithMockUser
+	@Test
+	public void canHandleFindByInvalidUserName() throws URISyntaxException, Exception {
+		BDDMockito.given(mockUserService.findUserByUserName(TEST_USERNAME)).willReturn(null);
+
+		ResultActions resultActions = performGetAction(FIND_USER_BY_USERNAME_ENDPOINT + TEST_USERNAME);
+		resultActions.andExpect(status().isNotFound());
+	}
+
+	private CreateUserRequest createUserRequest(String username, String password, String confirmPassword) {
 		CreateUserRequest request = new CreateUserRequest();
 		request.setUsername(username);
 		request.setPassword(password);
 		request.setConfirmPassword(confirmPassword);
 		return request;
+	}
+
+	private ResultActions performPostAction(CreateUserRequest request, String endPoint)
+			throws Exception, URISyntaxException, IOException {
+		ResultActions resultActions = mockMvc.perform(
+				post(new URI(endPoint))
+				.content(json.write(request).getJson())
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON));
+		return resultActions;
+	}
+
+	private ResultActions performGetAction(String endPoint) throws Exception, URISyntaxException {
+		ResultActions resultActions = mockMvc.perform(
+				get(new URI(endPoint))
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON));
+		return resultActions;
+	}
+
+	private void validateUserResponse(User user, ResultActions resultActions)
+			throws UnsupportedEncodingException, Exception {
+		assertNotNull(resultActions);
+		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+		assertNotNull(contentAsString);
+		resultActions.andExpect(jsonPath("$.id").value(user.getId()));
+		resultActions.andExpect(jsonPath("$.username").value(user.getUsername()));
 	}
 }
