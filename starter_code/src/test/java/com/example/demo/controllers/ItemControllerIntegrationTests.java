@@ -1,5 +1,9 @@
 package com.example.demo.controllers;
 
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
@@ -11,4 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ItemControllerIntegrationTests {
 
+	@Autowired
+	private ItemController itemController;
+
+//	@Autowired
+//	private TestRestTemplate restTemplate;
+
+	@Test
+	public void canAccessController() {
+		assertNotNull(itemController);
+	}
 }
