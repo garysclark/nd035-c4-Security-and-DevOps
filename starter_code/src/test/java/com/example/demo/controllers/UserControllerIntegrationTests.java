@@ -52,6 +52,9 @@ public class UserControllerIntegrationTests {
 
 	private static final String TEST_USERNAME = "testusername";
 	private static final String TEST_PASSWORD = "testpassword";
+	private static final String TEST_INVALID_SUFFIX = "INVALID";
+	private static final String TEST_INVALID_PASSWORD = "badpwd";
+	private static final String TEST_UNMATCHED_PASSWORD = "testunmatchedpwd";
 	@Autowired
 	private UserController userController;
 	@Autowired
@@ -76,7 +79,21 @@ public class UserControllerIntegrationTests {
 		User user = response.getBody();
 		assertEquals(TEST_USERNAME, user.getUsername());
 	}
+	
+	@Test
+	public void canHandleCreateUserWithInvalidPassword() {
+		ResponseEntity<User> response = createUser(TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
 
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
+
+	@Test
+	public void canHandleCreateUserWithUnmatchedPassword() {
+		ResponseEntity<User> response = createUser(TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
+	
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
 		createUser();
@@ -122,6 +139,16 @@ public class UserControllerIntegrationTests {
 		assertEquals(testUser.getId(), userResponse.getBody().getId());
 		assertEquals(testUser.getUsername(), userResponse.getBody().getUsername());
 	}
+	
+	@Test
+	public void canHandleGetUserByInvalidUserName() throws JsonProcessingException {
+		createAndAuthorizeUser();
+
+		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/" + testUser.getUsername() + TEST_INVALID_SUFFIX, HttpMethod.GET, testJwtEntity,
+				User.class);
+
+		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
+	}
 
 	private void createAndAuthorizeUser() throws JsonProcessingException {
 		ResponseEntity<User> createResponse = createUser();
@@ -143,13 +170,19 @@ public class UserControllerIntegrationTests {
 		return response;
 	}
 
-	private ResponseEntity<User> createUser() {
+	private ResponseEntity<User> createUser(String username, String password,
+			String confirmPassword) {
 		CreateUserRequest request = new CreateUserRequest();
-		request.setUsername(TEST_USERNAME);
-		request.setPassword(TEST_PASSWORD);
-		request.setConfirmPassword(TEST_PASSWORD);
+		request.setUsername(username);
+		request.setPassword(password);
+		request.setConfirmPassword(confirmPassword);
 
 		ResponseEntity<User> response = restTemplate.postForEntity("http://localhost:" + port + "/api/user/create", request, User.class);
+		return response;
+	}
+
+	private ResponseEntity<User> createUser() {
+		ResponseEntity<User> response = createUser(TEST_USERNAME, TEST_PASSWORD, TEST_PASSWORD);
 		return response;
 	}
 

@@ -11,6 +11,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,7 +110,7 @@ public class UserControllerTests {
 	@WithMockUser
 	@Test
 	public void canHandleFindUserByInvalidId() throws URISyntaxException, Exception {
-		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willReturn(null);
+		BDDMockito.given(mockUserService.findUserById(TEST_ID)).willThrow(EntityNotFoundException.class);
 
 		ResultActions resultActions = performGetAction(FIND_USER_BY_ID_ENDPOINT + TEST_ID);
 		resultActions.andExpect(status().isNotFound());
