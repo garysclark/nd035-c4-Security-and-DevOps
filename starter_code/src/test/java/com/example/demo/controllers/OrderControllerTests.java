@@ -72,11 +72,7 @@ public class OrderControllerTests {
 		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
 		assertNotNull(contentAsString);
 		UserOrder jsonOrder = new ObjectMapper().readValue(contentAsString, UserOrder.class);
-		assertEquals(expectedOrder.getId(), jsonOrder.getId());
-		assertEquals(expectedOrder.getItems(), jsonOrder.getItems());
-		assertEquals(expectedOrder.getTotal(), jsonOrder.getTotal());
-		assertEquals(expectedOrder.getUser().getId(), jsonOrder.getUser().getId());
-		assertEquals(expectedOrder.getUser().getUsername(), jsonOrder.getUser().getUsername());
+		assertEquals(convertToJsonOrder(expectedOrder), jsonOrder);
 	}
 
 	@Test
@@ -87,19 +83,11 @@ public class OrderControllerTests {
 		performPostAction(SUBMIT_ORDER_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
 	}
 
-	private ResultActions performPostAction(String path, ResultMatcher status) throws Exception, URISyntaxException {
-		return mockMvc.perform(
-				post(TestUtils.getUri(path))
-				.contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON))
-		.andExpect(status);
-	}
-
 	@Test
 	@WithMockUser
 	public void canGetOrdersForUser() throws URISyntaxException, Exception {
 		User user = UserTests.getTestUser();
-		List<UserOrder> expectedOrders = Collections.singletonList(convertToJsonOrder(UserOrder.createFromCart(user.getCart())));
+		List<UserOrder> expectedOrders = Collections.singletonList(UserOrder.createFromCart(user.getCart()));
 		BDDMockito.given(mockUserService.findUserByUserName(user.getUsername())).willReturn(user);
 		BDDMockito.given(mockOrderService.findOrdersByUser(user)).willReturn(expectedOrders);
 
@@ -110,13 +98,14 @@ public class OrderControllerTests {
 		assertNotNull(contentAsString);
 		List<UserOrder> jsonOrders = new ObjectMapper().readValue(contentAsString, new TypeReference<List<UserOrder>>(){});
 		assertNotNull(jsonOrders);
-		assertEquals(expectedOrders, jsonOrders);
+		assertEquals(convertToJsonOrders(expectedOrders), jsonOrders);
 	}
 
-	private UserOrder convertToJsonOrder(UserOrder userOrder) {
-		userOrder.getUser().setCart(null);
-		userOrder.getUser().setPassword(null);
-		return userOrder;
+	private List<UserOrder> convertToJsonOrders(List<UserOrder> userOrders) {
+		for(UserOrder userOrder : userOrders) {
+			convertToJsonOrder(userOrder);
+		}
+		return userOrders;
 	}
 
 	@Test
@@ -127,11 +116,25 @@ public class OrderControllerTests {
 		performGetAction(GET_ORDER_HISTORY_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
 	}
 
+	private ResultActions performPostAction(String path, ResultMatcher status) throws Exception, URISyntaxException {
+		return mockMvc.perform(
+				post(TestUtils.getUri(path))
+				.contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON))
+		.andExpect(status);
+	}
+
 	private ResultActions performGetAction(String path, ResultMatcher status) throws Exception, URISyntaxException {
 		return mockMvc.perform(
 				get(TestUtils.getUri(path))
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status);
+	}
+
+	private UserOrder convertToJsonOrder(UserOrder userOrder) {
+		userOrder.getUser().setCart(null);
+		userOrder.getUser().setPassword(null);
+		return userOrder;
 	}
 }
