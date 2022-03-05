@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +25,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.ItemTests;
 import com.example.demo.services.ItemService;
+import com.example.demo.utils.TestUtils;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -106,11 +106,8 @@ public class ItemControllerTests {
 	}
 
 	private ResultActions performGetAction(String rawPath) throws Exception, URISyntaxException {
-		// the following accounts for spaces in the URL (specifically the item name)
-		String escapedPath = new URI("dummy",rawPath, null).getRawSchemeSpecificPart();
-
 		ResultActions resultActions = mockMvc.perform(
-				get(new URI(escapedPath))
+				get(TestUtils.getUri(rawPath))
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON));
 		return resultActions;

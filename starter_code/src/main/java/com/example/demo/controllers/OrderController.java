@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.UserOrder;
-import com.example.demo.model.persistence.repositories.OrderRepository;
-import com.example.demo.model.persistence.repositories.UserRepository;
+import com.example.demo.services.OrderService;
+import com.example.demo.services.UserService;
 
 @RestController
 @RequestMapping("/api/order")
@@ -21,29 +21,29 @@ public class OrderController {
 	
 	
 	@Autowired
-	private UserRepository userRepository;
+	private UserService userService;
 	
 	@Autowired
-	private OrderRepository orderRepository;
+	private OrderService orderService;
 	
 	
 	@PostMapping("/submit/{username}")
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
-		User user = userRepository.findByUsername(username);
+		User user = userService.findUserByUserName(username);
 		if(user == null) {
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
-		orderRepository.save(order);
-		return ResponseEntity.ok(order);
+		UserOrder savedUserOrder = orderService.saveOrder(order);
+		return ResponseEntity.ok(savedUserOrder);
 	}
 	
 	@GetMapping("/history/{username}")
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
-		User user = userRepository.findByUsername(username);
+		User user = userService.findUserByUserName(username);
 		if(user == null) {
 			return ResponseEntity.notFound().build();
 		}
-		return ResponseEntity.ok(orderRepository.findByUser(user));
+		return ResponseEntity.ok(orderService.findOrdersByUser(user));
 	}
 }
