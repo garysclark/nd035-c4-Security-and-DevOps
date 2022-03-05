@@ -1,5 +1,7 @@
 package com.example.demo.model.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
@@ -18,13 +20,17 @@ public class ItemTests {
     	BeanTestUtils.testBean(Item.class);
     }
 	
+	@Test
+	public void canCreateWithAttributes() {
+		Item item = getTestItem();
+		assertEquals(TEST_ID, item.getId());
+		assertEquals(TEST_NAME, item.getName());
+		assertEquals(TEST_PRICE, item.getPrice());
+		assertEquals(TEST_DESCRIPTION, item.getDescription());
+	}
+	
 	public static Item getTestItem() {
-		Item item = new Item();
-		item.setId(TEST_ID);
-		item.setName(TEST_NAME);
-		item.setDescription(TEST_DESCRIPTION);
-		item.setPrice(TEST_PRICE);
-		return item;
+		return new Item(TEST_ID, TEST_NAME, TEST_PRICE, TEST_DESCRIPTION);
 	}
 
 
