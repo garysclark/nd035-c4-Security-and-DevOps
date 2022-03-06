@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
@@ -28,16 +29,18 @@ import com.example.demo.model.persistence.UserTests;
 import com.example.demo.services.OrderService;
 import com.example.demo.services.UserService;
 import com.example.demo.utils.TestUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class OrderControllerTests {
 
-	private static final String SUBMIT_ORDER_ENDPOINT = "/api/order/submit/";
+	private static final String SUBMIT_ORDER_BY_USERNAME_ENDPOINT = OrderController.SUBMIT_ORDER_BY_USERNAME_ENDPOINT;
 
-	private static final String GET_ORDER_HISTORY_ENDPOINT = "/api/order/history/";
+	private static final String GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT = OrderController.GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT;
 
 	private static final String TEST_INVALID_USER_NAME = "invlaidUser";
 
@@ -66,13 +69,9 @@ public class OrderControllerTests {
 		BDDMockito.given(mockUserService.findUserByUserName(user.getUsername())).willReturn(user);
 		BDDMockito.given(mockOrderService.saveOrder(expectedOrder)).willReturn(expectedOrder);
 
-		ResultActions resultActions = performPostAction(SUBMIT_ORDER_ENDPOINT + user.getUsername(), status().isOk());
+		ResultActions resultActions = performPostAction(SUBMIT_ORDER_BY_USERNAME_ENDPOINT + user.getUsername(), status().isOk());
 		
-		assertNotNull(resultActions);
-		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-		assertNotNull(contentAsString);
-		UserOrder jsonOrder = new ObjectMapper().readValue(contentAsString, UserOrder.class);
-		assertEquals(convertToJsonOrder(expectedOrder), jsonOrder);
+		validateOrder(expectedOrder, resultActions);
 	}
 
 	@Test
@@ -80,7 +79,7 @@ public class OrderControllerTests {
 	public void canHandleSubmitOrderWithInvalidUser() throws URISyntaxException, Exception {
 		BDDMockito.given(mockUserService.findUserByUserName(TEST_INVALID_USER_NAME)).willReturn(null);
 
-		performPostAction(SUBMIT_ORDER_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
+		performPostAction(SUBMIT_ORDER_BY_USERNAME_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
 	}
 
 	@Test
@@ -91,21 +90,9 @@ public class OrderControllerTests {
 		BDDMockito.given(mockUserService.findUserByUserName(user.getUsername())).willReturn(user);
 		BDDMockito.given(mockOrderService.findOrdersByUser(user)).willReturn(expectedOrders);
 
-		ResultActions resultActions = performGetAction(GET_ORDER_HISTORY_ENDPOINT + user.getUsername(), status().isOk());
+		ResultActions resultActions = performGetAction(GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT + user.getUsername(), status().isOk());
 
-		assertNotNull(resultActions);
-		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
-		assertNotNull(contentAsString);
-		List<UserOrder> jsonOrders = new ObjectMapper().readValue(contentAsString, new TypeReference<List<UserOrder>>(){});
-		assertNotNull(jsonOrders);
-		assertEquals(convertToJsonOrders(expectedOrders), jsonOrders);
-	}
-
-	private List<UserOrder> convertToJsonOrders(List<UserOrder> userOrders) {
-		for(UserOrder userOrder : userOrders) {
-			convertToJsonOrder(userOrder);
-		}
-		return userOrders;
+		validateOrders(expectedOrders, resultActions);
 	}
 
 	@Test
@@ -113,7 +100,7 @@ public class OrderControllerTests {
 	public void canHandleGetOrdersForInvalidUser() throws URISyntaxException, Exception {
 		BDDMockito.given(mockUserService.findUserByUserName(TEST_INVALID_USER_NAME)).willReturn(null);
 
-		performGetAction(GET_ORDER_HISTORY_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
+		performGetAction(GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT + TEST_INVALID_USER_NAME, status().isNotFound());
 	}
 
 	private ResultActions performPostAction(String path, ResultMatcher status) throws Exception, URISyntaxException {
@@ -130,6 +117,34 @@ public class OrderControllerTests {
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON))
 				.andExpect(status);
+	}
+
+	private void validateOrder(UserOrder expectedOrder, ResultActions resultActions)
+			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
+		String contentAsString = validateResponseContent(resultActions);
+		UserOrder jsonOrder = new ObjectMapper().readValue(contentAsString, UserOrder.class);
+		assertEquals(convertToJsonOrder(expectedOrder), jsonOrder);
+	}
+
+	private void validateOrders(List<UserOrder> expectedOrders, ResultActions resultActions)
+			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
+		String contentAsString = validateResponseContent(resultActions);
+		List<UserOrder> jsonOrders = new ObjectMapper().readValue(contentAsString, new TypeReference<List<UserOrder>>(){});
+		assertEquals(convertToJsonOrders(expectedOrders), jsonOrders);
+	}
+
+	private String validateResponseContent(ResultActions resultActions) throws UnsupportedEncodingException {
+		assertNotNull(resultActions);
+		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
+		assertNotNull(contentAsString);
+		return contentAsString;
+	}
+
+	private List<UserOrder> convertToJsonOrders(List<UserOrder> userOrders) {
+		for(UserOrder userOrder : userOrders) {
+			convertToJsonOrder(userOrder);
+		}
+		return userOrders;
 	}
 
 	private UserOrder convertToJsonOrder(UserOrder userOrder) {

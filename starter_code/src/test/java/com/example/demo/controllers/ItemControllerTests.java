@@ -109,19 +109,19 @@ public class ItemControllerTests {
 
 	private void validateItems(List<Item> expectedItems, ResultActions resultActions)
 			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
-		String contentAsString = validateContentPresent(resultActions);
+		String contentAsString = validateResponseContent(resultActions);
 		List<Item> jsonItems = new ObjectMapper().readValue(contentAsString, new TypeReference<List<Item>>(){});
 		assertEquals(expectedItems, jsonItems);
 	}
 
 	private void validateItem(Item expectedItem, ResultActions resultActions)
 			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
-		String contentAsString = validateContentPresent(resultActions);
+		String contentAsString = validateResponseContent(resultActions);
 		Item jsonItem = new ObjectMapper().readValue(contentAsString, Item.class);
 		assertEquals(expectedItem, jsonItem);
 	}
 
-	private String validateContentPresent(ResultActions resultActions) throws UnsupportedEncodingException {
+	private String validateResponseContent(ResultActions resultActions) throws UnsupportedEncodingException {
 		assertNotNull(resultActions);
 		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
 		assertNotNull(contentAsString);

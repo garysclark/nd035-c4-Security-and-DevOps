@@ -17,10 +17,15 @@ import com.example.demo.services.ItemService;
 public class ItemController {
 	
 	private static final String GET_ITEM_BY_NAME_ENDPOINT_PART = "/name/{name}";
+
 	private static final String GET_ITEM_BY_ID_ENDPOINT_PART = "/{id}";
+	
 	public static final String API_ITEM_ENDPOINT = "/api/item";
+	
 	public static final String GET_ALL_ITEMS_ENDPOINT = API_ITEM_ENDPOINT;
+	
 	public static final String GET_ITEMS_BY_NAME_ENDPOINT = API_ITEM_ENDPOINT + "/name/";
+	
 	public static final String GET_ITEM_BY_ID_ENDPOINT = API_ITEM_ENDPOINT + "/";
 
 	@Autowired
