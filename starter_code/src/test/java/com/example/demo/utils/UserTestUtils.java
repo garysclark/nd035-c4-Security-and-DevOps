@@ -14,7 +14,7 @@ import com.example.demo.model.requests.CreateUserRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class AuthorizedUser {
+public class UserTestUtils {
 
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 
@@ -29,7 +29,7 @@ public class AuthorizedUser {
 	private TestRestTemplate testRestTemplate;
 	private int port;
 
-	public AuthorizedUser(TestRestTemplate testRestTemplate, int port) {
+	public UserTestUtils(TestRestTemplate testRestTemplate, int port) {
 		this.testRestTemplate = testRestTemplate;
 		this.port = port;
 	}
@@ -42,7 +42,7 @@ public class AuthorizedUser {
 		return jwtEntity;
 	}
 
-	public ResponseEntity<User> create(CreateUserRequest request) {
+	public ResponseEntity<User> createUser(CreateUserRequest request) {
 		ResponseEntity<User> response = testRestTemplate.postForEntity(
 				HOST_URL + port + CREATE_USER_ENDPOINT, request, User.class);
 		if(response.getStatusCode() == HttpStatus.OK) {
@@ -67,9 +67,9 @@ public class AuthorizedUser {
 		return response;
 	}
 
-	public ResponseEntity<String> createAndLogin(CreateUserRequest request) 
+	public ResponseEntity<String> createAndLoginUser(CreateUserRequest request) 
 			throws JsonProcessingException {
-		if(create(request).getStatusCode() != HttpStatus.OK) {
+		if(createUser(request).getStatusCode() != HttpStatus.OK) {
 			return null;
 		}
 		return login(new LoginUserRequest(request.getUsername(), request.getPassword()));

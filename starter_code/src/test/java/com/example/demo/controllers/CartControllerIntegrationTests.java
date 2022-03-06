@@ -22,7 +22,7 @@ import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
-import com.example.demo.utils.AuthorizedUser;
+import com.example.demo.utils.UserTestUtils;
 import com.example.demo.utils.CartTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -43,7 +43,7 @@ public class CartControllerIntegrationTests {
 
 	@Autowired
 	private CartController cartController;
-	private AuthorizedUser authorizedUser;
+	private UserTestUtils userTestUtils;
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
@@ -52,8 +52,8 @@ public class CartControllerIntegrationTests {
 
 	@BeforeEach
 	public void beforeEach(){
-		authorizedUser = new AuthorizedUser(testRestTemplate, port);
-		cartTestUtils = new CartTestUtils(testRestTemplate, port, authorizedUser);
+		userTestUtils = new UserTestUtils(testRestTemplate, port);
+		cartTestUtils = new CartTestUtils(testRestTemplate, port, userTestUtils);
 	}
 	
 	@Test
@@ -105,11 +105,11 @@ public class CartControllerIntegrationTests {
 	}
 
 	User getUser() {
-		return authorizedUser.getUser();
+		return userTestUtils.getUser();
 	}
 
 	private void createAndLoginUser() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		authorizedUser.createAndLogin(request);
+		userTestUtils.createAndLoginUser(request);
 	}
 }

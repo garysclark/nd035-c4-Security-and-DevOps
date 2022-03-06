@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
-import com.example.demo.utils.AuthorizedUser;
+import com.example.demo.utils.UserTestUtils;
 import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -47,11 +47,11 @@ public class UserControllerIntegrationTests {
 
 	@LocalServerPort
 	private int port;
-	private AuthorizedUser authorizedUser;
+	private UserTestUtils userTestUtils;
 
 	@BeforeEach
 	public void beforeEach() {
-		authorizedUser = new AuthorizedUser(restTemplate, port);
+		userTestUtils = new UserTestUtils(restTemplate, port);
 	}
 	
 	@Test
@@ -62,7 +62,7 @@ public class UserControllerIntegrationTests {
 	@Test
 	public void canCreateUser() {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		ResponseEntity<User> response = authorizedUser.create(request);
+		ResponseEntity<User> response = userTestUtils.createUser(request);
 
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -73,7 +73,7 @@ public class UserControllerIntegrationTests {
 	public void canHandleCreateUserWithInvalidPassword() {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(
 				TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
-		ResponseEntity<User> response = authorizedUser.create(request);
+		ResponseEntity<User> response = userTestUtils.createUser(request);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
@@ -82,7 +82,7 @@ public class UserControllerIntegrationTests {
 	public void canHandleCreateUserWithUnmatchedPassword() {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(
 				TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
-		ResponseEntity<User> response = authorizedUser.create(request);
+		ResponseEntity<User> response = userTestUtils.createUser(request);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
@@ -90,7 +90,7 @@ public class UserControllerIntegrationTests {
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		ResponseEntity<String> response = authorizedUser.createAndLogin(request);
+		ResponseEntity<String> response = userTestUtils.createAndLoginUser(request);
 
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -152,15 +152,15 @@ public class UserControllerIntegrationTests {
 
 	private void createAndAuthorizeUser() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		authorizedUser.createAndLogin(request);
+		userTestUtils.createAndLoginUser(request);
 	}
 
 	private User getUser() {
-		return authorizedUser.getUser();
+		return userTestUtils.getUser();
 	}
 
 	private HttpEntity<String> getJwtEntity() {
-		return authorizedUser.getJwtEntity();
+		return userTestUtils.getJwtEntity();
 	}
 
 }

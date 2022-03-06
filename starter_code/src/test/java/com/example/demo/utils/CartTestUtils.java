@@ -18,12 +18,12 @@ public class CartTestUtils {
 
 	private TestRestTemplate testRestTemplate;
 	private int port;
-	private AuthorizedUser authorizedUser;
+	private UserTestUtils userTestUtils;
 
-	public CartTestUtils(TestRestTemplate testRestTemplate, int port, AuthorizedUser authorizedUser) {
+	public CartTestUtils(TestRestTemplate testRestTemplate, int port, UserTestUtils authorizedUser) {
 		this.testRestTemplate = testRestTemplate;
 		this.port = port;
-		this.authorizedUser = authorizedUser;
+		this.userTestUtils = authorizedUser;
 	}
 
 	public ResponseEntity<Cart> addItemToCart(Long itemId, int itemCount, String username) {
@@ -37,7 +37,7 @@ public class CartTestUtils {
 	}
 
 	private HttpEntity<String> getJwtEntity() {
-		return authorizedUser.getJwtEntity();
+		return userTestUtils.getJwtEntity();
 	}
 
 	public ResponseEntity<Cart> removeItemFromCart(Long itemId, int itemCount, String username) {

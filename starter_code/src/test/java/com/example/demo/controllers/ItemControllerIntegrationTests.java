@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.model.persistence.Item;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
-import com.example.demo.utils.AuthorizedUser;
+import com.example.demo.utils.UserTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -55,11 +55,11 @@ public class ItemControllerIntegrationTests {
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
-	private AuthorizedUser authorizedUser;
+	private UserTestUtils userTestUtils;
 
 	@BeforeEach
 	public void beforeEach() {
-		authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		userTestUtils = new UserTestUtils(testRestTemplate, port);
 	}
 	
 	@Test
@@ -140,11 +140,11 @@ public class ItemControllerIntegrationTests {
 	}
 
 	private HttpEntity<String> getJwtEntity() {
-		return authorizedUser.getJwtEntity();
+		return userTestUtils.getJwtEntity();
 	}
 
 	private void createAndLoginUser() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		authorizedUser.createAndLogin(request);
+		userTestUtils.createAndLoginUser(request);
 	}
 }

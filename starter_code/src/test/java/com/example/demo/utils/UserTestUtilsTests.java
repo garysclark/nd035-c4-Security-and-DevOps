@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @AutoConfigureTestDatabase
 @Transactional
-public class AuthorizedUserTests {
+public class UserTestUtilsTests {
 
 	@Autowired
 	private TestRestTemplate testRestTemplate;
@@ -36,9 +36,9 @@ public class AuthorizedUserTests {
 	@Test
 	public void canCreateAndLoginUserSequentially() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		AuthorizedUser authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		UserTestUtils authorizedUser = new UserTestUtils(testRestTemplate, port);
 		assertNotNull(authorizedUser);
-		ResponseEntity<User> response = authorizedUser.create(request);
+		ResponseEntity<User> response = authorizedUser.createUser(request);
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(request.getUsername(), authorizedUser.getUser().getUsername());
@@ -53,9 +53,9 @@ public class AuthorizedUserTests {
 	@Test
 	public void canCreateAndLoginUserAsASingleCall() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		AuthorizedUser authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		UserTestUtils authorizedUser = new UserTestUtils(testRestTemplate, port);
 		assertNotNull(authorizedUser);
-		ResponseEntity<String> response = authorizedUser.createAndLogin(request);
+		ResponseEntity<String> response = authorizedUser.createAndLoginUser(request);
 		assertNotNull(response);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(request.getUsername(), authorizedUser.getUser().getUsername());
@@ -66,7 +66,7 @@ public class AuthorizedUserTests {
 	@Test
 	public void canHandleInvalidLogin() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		AuthorizedUser authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		UserTestUtils authorizedUser = new UserTestUtils(testRestTemplate, port);
 
 		LoginUserRequest loginUserRequest = new LoginUserRequest(request.getUsername(), request.getPassword());
 		ResponseEntity<String> loginResponse = authorizedUser.login(loginUserRequest);

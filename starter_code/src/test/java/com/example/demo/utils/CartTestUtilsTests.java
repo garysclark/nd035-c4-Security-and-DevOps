@@ -41,25 +41,25 @@ public class CartTestUtilsTests {
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
-	private AuthorizedUser authorizedUser;
+	private UserTestUtils userTestUtils;
 
 	@BeforeEach
 	public void beforeEach() throws JsonProcessingException{
-		authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		userTestUtils = new UserTestUtils(testRestTemplate, port);
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		authorizedUser.createAndLogin(request);
+		userTestUtils.createAndLoginUser(request);
 	}
 
 	@Test
 	public void canCreateCartUtils() {
-		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, authorizedUser);
+		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, userTestUtils);
 		assertNotNull(cartUtils);
 	}
 	
 	@Test
 	public void canAddItemToCart() {
 		Item expectedItem = TEST_ITEMS.get(0);
-		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, authorizedUser);
+		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, userTestUtils);
 
 		ResponseEntity<Cart> response = cartUtils.addItemToCart(expectedItem.getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
 
@@ -75,7 +75,7 @@ public class CartTestUtilsTests {
 	@Test
 	public void canRemoveItemFromCart() {
 		Item testItem = TEST_ITEMS.get(0);
-		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, authorizedUser);
+		CartTestUtils cartUtils = new CartTestUtils(testRestTemplate, port, userTestUtils);
 
 		cartUtils.addItemToCart(testItem.getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
 		ResponseEntity<Cart> response = cartUtils.removeItemFromCart(testItem.getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
@@ -87,7 +87,7 @@ public class CartTestUtilsTests {
 	}
 
 	User getUser() {
-		return authorizedUser.getUser();
+		return userTestUtils.getUser();
 	}
 
 }
