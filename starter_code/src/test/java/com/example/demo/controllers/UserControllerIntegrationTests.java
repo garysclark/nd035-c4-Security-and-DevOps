@@ -23,6 +23,7 @@ import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
 import com.example.demo.utils.UserTestUtils;
+import com.example.demo.utils.LoginUserRequest;
 import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -40,6 +41,7 @@ public class UserControllerIntegrationTests {
 	private static final String HOST_URL = TestUtils.HOST_URL;
 	private static final String FIND_USER_BY_ID_ENDPOINT = UserController.FIND_USER_BY_ID_ENDPOINT;
 	private static final String FIND_USER_BY_USERNAME_ENDPOINT = UserController.FIND_USER_BY_USERNAME_ENDPOINT;
+	private static final String TEST_INVALID_USERNAME = "testInvalidUsername";
 	@Autowired
 	private UserController userController;
 	@Autowired
@@ -53,7 +55,7 @@ public class UserControllerIntegrationTests {
 	public void beforeEach() {
 		userTestUtils = new UserTestUtils(restTemplate, port);
 	}
-	
+
 	@Test
 	public void canAccessController() {
 		assertNotNull(userController);
@@ -68,7 +70,7 @@ public class UserControllerIntegrationTests {
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals(request.getUsername(), getUser().getUsername());
 	}
-	
+
 	@Test
 	public void canHandleCreateUserWithInvalidPassword() {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(
@@ -86,7 +88,7 @@ public class UserControllerIntegrationTests {
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
-	
+
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
@@ -97,7 +99,17 @@ public class UserControllerIntegrationTests {
 		List<String> authorizations = response.getHeaders().get("Authorization");
 		assertNotNull(authorizations);
 	}
-	
+
+	@Test
+	public void canHandleLoginFromInvalidUser() throws JsonProcessingException {
+		LoginUserRequest loginUserRequest = new LoginUserRequest(TEST_INVALID_USERNAME, TEST_INVALID_PASSWORD);
+
+		ResponseEntity<String> response = userTestUtils.login(loginUserRequest);
+
+		assertNotNull(response);
+		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+	}
+
 	@Test
 	public void canFindUserById() throws JsonProcessingException {
 		createAndAuthorizeUser();
@@ -111,7 +123,7 @@ public class UserControllerIntegrationTests {
 		assertEquals(getUser().getId(), userResponse.getBody().getId());
 		assertEquals(getUser().getUsername(), userResponse.getBody().getUsername());
 	}
-	
+
 	@Test
 	public void canHandleFindUserByInvalidId() throws JsonProcessingException {
 		createAndAuthorizeUser();
@@ -123,7 +135,7 @@ public class UserControllerIntegrationTests {
 
 		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
 	}
-	
+
 	@Test
 	public void canGetUserByUsername() throws JsonProcessingException {
 		createAndAuthorizeUser();
@@ -137,7 +149,7 @@ public class UserControllerIntegrationTests {
 		assertEquals(getUser().getId(), userResponse.getBody().getId());
 		assertEquals(getUser().getUsername(), userResponse.getBody().getUsername());
 	}
-	
+
 	@Test
 	public void canHandleGetUserByInvalidUserName() throws JsonProcessingException {
 		createAndAuthorizeUser();

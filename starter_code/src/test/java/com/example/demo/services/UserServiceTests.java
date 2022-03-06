@@ -9,18 +9,17 @@ import java.util.Optional;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.repositories.CartRepository;
 import com.example.demo.model.persistence.repositories.UserRepository;
 
+@SpringBootTest
 public class UserServiceTests {
 
 	private static final Long TEST_CART_ID = 1l;
@@ -28,26 +27,16 @@ public class UserServiceTests {
 	private static final String TEST_PASSWORD = "password";
 	private static final Long TEST_USER_ID = 1l;
 	private static final Long TEST_INVALID_ID = 99l;
-	@Mock
+
+	@MockBean
 	private CartRepository mockCartRepository;
-	@Mock
+	
+	@MockBean
 	private UserRepository mockUserRepository;
 	
-	@InjectMocks
-	private UserService userService = new UserService();
+	@Autowired
+	private UserService userService;
 
-	private AutoCloseable autoCloseable;
-
-	@BeforeEach
-	public void beforeEach() {
-		autoCloseable = MockitoAnnotations.openMocks(this);
-	}
-
-	@AfterEach
-	public void afterEach() throws Exception {
-		autoCloseable.close();
-	}
-	
 	@Test
 	public void canAccessService() {
 		assertNotNull(userService);

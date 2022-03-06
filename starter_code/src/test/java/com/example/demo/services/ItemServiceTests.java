@@ -11,40 +11,27 @@ import java.util.Optional;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.ItemTests;
 import com.example.demo.model.persistence.repositories.ItemRepository;
 
+@SpringBootTest
 public class ItemServiceTests {
 
 	private static final List<Item> TEST_ITEMS = Collections.singletonList(ItemTests.getTestItem());
 
 	private static final Long TEST_INVALID_ID = 99l;
 
-	@Mock
+	@MockBean
 	private ItemRepository mockItemRepository;
 
-	@InjectMocks
-	private ItemService itemService = new ItemService();
-
-	private AutoCloseable autoCloseable;
-
-	@BeforeEach
-	public void beforeEach() {
-		autoCloseable = MockitoAnnotations.openMocks(this);
-	}
-	
-	@AfterEach
-	public void afterEach() throws Exception {
-		autoCloseable.close();
-	}
+	@Autowired
+	private ItemService itemService;
 	
 	@Test
 	public void canAccessService() {

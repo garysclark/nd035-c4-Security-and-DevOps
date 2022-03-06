@@ -3,36 +3,23 @@ package com.example.demo.services;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.example.demo.model.persistence.Cart;
 import com.example.demo.model.persistence.CartTests;
 import com.example.demo.model.persistence.repositories.CartRepository;
 
+@SpringBootTest
 public class CartServiceTests {
 
-	@Mock
+	@MockBean
 	private CartRepository mockCartRepository;
 	
-	@InjectMocks
+	@Autowired
 	private CartService cartService = new CartService();
-
-	private AutoCloseable autoClosable;
-
-	@BeforeEach
-	public void beforeEach() {
-		autoClosable = MockitoAnnotations.openMocks(this);
-	}
-	
-	@AfterEach
-	public void afterEach() throws Exception {
-		autoClosable.close();
-	}
 	
 	@Test
 	public void canAccessService() {
