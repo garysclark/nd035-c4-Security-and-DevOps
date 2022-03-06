@@ -12,8 +12,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -24,9 +22,8 @@ import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
-import com.example.demo.model.requests.ModifyCartRequest;
-import com.example.demo.model.requests.ModifyCartRequestTests;
 import com.example.demo.utils.AuthorizedUser;
+import com.example.demo.utils.CartTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -51,9 +48,12 @@ public class CartControllerIntegrationTests {
 	@Autowired
 	private TestRestTemplate testRestTemplate;
 
+	private CartTestUtils cartTestUtils;
+
 	@BeforeEach
 	public void beforeEach(){
 		authorizedUser = new AuthorizedUser(testRestTemplate, port);
+		cartTestUtils = new CartTestUtils(testRestTemplate, port, authorizedUser);
 	}
 	
 	@Test
@@ -64,7 +64,7 @@ public class CartControllerIntegrationTests {
 	@Test
 	public void canAddToCart() throws JsonProcessingException {
 		createAndLoginUser();
-		ResponseEntity<Cart> response = addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
+		ResponseEntity<Cart> response = cartTestUtils.addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		Cart cart = response.getBody();
@@ -78,7 +78,7 @@ public class CartControllerIntegrationTests {
 	@Test
 	public void canHandleAddItemToCartWithInvalidUsername() throws JsonProcessingException {
 		createAndLoginUser();
-		ResponseEntity<Cart> response = addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, TEST_INVALID_USERNAME);
+		ResponseEntity<Cart> response = cartTestUtils.addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, TEST_INVALID_USERNAME);
 
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}
@@ -86,9 +86,10 @@ public class CartControllerIntegrationTests {
 	@Test
 	public void canRemoveItemFromCart() throws JsonProcessingException {
 		createAndLoginUser();
-		addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
+		cartTestUtils.addItemToCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
 
-		ResponseEntity<Cart> response = removeItemFromCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
+		ResponseEntity<Cart> response = cartTestUtils.removeItemFromCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, getUser().getUsername());
+
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		Cart cart = response.getBody();
 		assertNotNull(cart);
@@ -98,29 +99,9 @@ public class CartControllerIntegrationTests {
 	@Test
 	public void canHandleRemoveItemFromCartWithInvalidUsername() throws JsonProcessingException {
 		createAndLoginUser();
-		ResponseEntity<Cart> response = removeItemFromCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, TEST_INVALID_USERNAME);
+		ResponseEntity<Cart> response = cartTestUtils.removeItemFromCart(TEST_ITEMS.get(0).getId(), TEST_ADD_ITEM_COUNT, TEST_INVALID_USERNAME);
 
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-	}
-
-	private ResponseEntity<Cart> addItemToCart(Long itemId, int itemCount, String username) {
-		ModifyCartRequest request = ModifyCartRequestTests.getTestModifyCartRequest(itemId, itemCount, username);
-		HttpEntity<ModifyCartRequest> entity = new HttpEntity<ModifyCartRequest>(request, getJwtEntity().getHeaders());
-
-		ResponseEntity<Cart> response = testRestTemplate.exchange("http://localhost:" + port + "/api/cart/addToCart", HttpMethod.POST, entity, Cart.class);
-		return response;
-	}
-
-	private ResponseEntity<Cart> removeItemFromCart(Long itemId, int itemCount, String username) {
-		ModifyCartRequest request = ModifyCartRequestTests.getTestModifyCartRequest(itemId, itemCount, username);
-		HttpEntity<ModifyCartRequest> entity = new HttpEntity<ModifyCartRequest>(request, getJwtEntity().getHeaders());
-
-		ResponseEntity<Cart> response = testRestTemplate.exchange("http://localhost:" + port + "/api/cart/removeFromCart", HttpMethod.POST, entity, Cart.class);
-		return response;
-	}
-
-	private HttpEntity<String> getJwtEntity() {
-		return authorizedUser.getJwtEntity();
 	}
 
 	User getUser() {
