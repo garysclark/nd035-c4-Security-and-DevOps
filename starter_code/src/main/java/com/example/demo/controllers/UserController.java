@@ -17,30 +17,44 @@ import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.services.UserService;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping(UserController.API_USER_ENDPOINT)
 public class UserController {
 	
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private static final String CREATE_USER_ENDPOINT_PART = "/create";
+
+	private static final String FIND_USER_BY_USERNAME_ENDPOINT_PART = "/{username}";
+
+	private static final String FIND_USER_BY_ID_ENDPOINT_PART = "/id/{id}";
+
+	public static final String API_USER_ENDPOINT = "/api/user";
 	
+	public static final String CREATE_USER_ENDPOINT = API_USER_ENDPOINT + CREATE_USER_ENDPOINT_PART;
+
+	public static final String FIND_USER_BY_USERNAME_ENDPOINT = API_USER_ENDPOINT + "/";
+
+	public static final String FIND_USER_BY_ID_ENDPOINT = API_USER_ENDPOINT + "/id/";
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
 	@Autowired
 	private UserService userService;
 
-	@GetMapping("/id/{id}")
+	@GetMapping(FIND_USER_BY_ID_ENDPOINT_PART)
 	public ResponseEntity<User> findById(@PathVariable Long id) {
 		User user = userService.findUserById(id);
 		return ResponseEntity.ok(user);
 	}
 	
-	@GetMapping("/{username}")
+	@GetMapping(FIND_USER_BY_USERNAME_ENDPOINT_PART)
 	public ResponseEntity<User> findByUserName(@PathVariable String username) {
 		User user = userService.findUserByUserName(username);
 		return user == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(user);
 	}
 	
-	@PostMapping("/create")
+	@PostMapping(CREATE_USER_ENDPOINT_PART)
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
 		logger.info("Creating user {}", createUserRequest.getUsername());
 		User user = new User();

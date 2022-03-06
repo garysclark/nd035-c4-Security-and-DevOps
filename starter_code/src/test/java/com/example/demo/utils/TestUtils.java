@@ -5,6 +5,8 @@ import java.net.URISyntaxException;
 
 public class TestUtils {
 
+	public static final String HOST_URL = "http://localhost:";
+
 	public static URI getUri(String rawPath) throws URISyntaxException {
 		// the following accounts for spaces in the URL
 		String escapedPath = new URI("dummy",rawPath, null).getRawSchemeSpecificPart();

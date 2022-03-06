@@ -23,6 +23,7 @@ import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
 import com.example.demo.utils.AuthorizedUser;
+import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -36,6 +37,9 @@ public class UserControllerIntegrationTests {
 	private static final String TEST_INVALID_SUFFIX = "INVALID";
 	private static final String TEST_INVALID_PASSWORD = "badpwd";
 	private static final String TEST_UNMATCHED_PASSWORD = "testunmatchedpwd";
+	private static final String HOST_URL = TestUtils.HOST_URL;
+	private static final String FIND_USER_BY_ID_ENDPOINT = UserController.FIND_USER_BY_ID_ENDPOINT;
+	private static final String FIND_USER_BY_USERNAME_ENDPOINT = UserController.FIND_USER_BY_USERNAME_ENDPOINT;
 	@Autowired
 	private UserController userController;
 	@Autowired
@@ -67,7 +71,8 @@ public class UserControllerIntegrationTests {
 	
 	@Test
 	public void canHandleCreateUserWithInvalidPassword() {
-		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
+		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(
+				TEST_USERNAME, TEST_INVALID_PASSWORD, TEST_INVALID_PASSWORD);
 		ResponseEntity<User> response = authorizedUser.create(request);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -75,7 +80,8 @@ public class UserControllerIntegrationTests {
 
 	@Test
 	public void canHandleCreateUserWithUnmatchedPassword() {
-		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
+		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest(
+				TEST_USERNAME, TEST_PASSWORD, TEST_UNMATCHED_PASSWORD);
 		ResponseEntity<User> response = authorizedUser.create(request);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -93,10 +99,12 @@ public class UserControllerIntegrationTests {
 	}
 	
 	@Test
-	public void canGetUserById() throws JsonProcessingException {
+	public void canFindUserById() throws JsonProcessingException {
 		createAndAuthorizeUser();
 
-		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + getUser().getId(), HttpMethod.GET, getJwtEntity(),
+		ResponseEntity<User> userResponse = restTemplate.exchange(
+				HOST_URL + port + FIND_USER_BY_ID_ENDPOINT + getUser().getId(), 
+				HttpMethod.GET, getJwtEntity(),
 				User.class);
 
 		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
@@ -105,10 +113,12 @@ public class UserControllerIntegrationTests {
 	}
 	
 	@Test
-	public void canHandleGetUserByInvalidId() throws JsonProcessingException {
+	public void canHandleFindUserByInvalidId() throws JsonProcessingException {
 		createAndAuthorizeUser();
 
-		ResponseEntity<String> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/id/" + getUser().getId() + 1l, HttpMethod.GET, getJwtEntity(),
+		ResponseEntity<String> userResponse = restTemplate.exchange(
+				HOST_URL + port + FIND_USER_BY_ID_ENDPOINT + getUser().getId() + 1l, 
+				HttpMethod.GET, getJwtEntity(),
 				String.class);
 
 		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
@@ -118,7 +128,9 @@ public class UserControllerIntegrationTests {
 	public void canGetUserByUsername() throws JsonProcessingException {
 		createAndAuthorizeUser();
 
-		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/" + getUser().getUsername(), HttpMethod.GET, getJwtEntity(),
+		ResponseEntity<User> userResponse = restTemplate.exchange(
+				HOST_URL + port + FIND_USER_BY_USERNAME_ENDPOINT + getUser().getUsername(), 
+				HttpMethod.GET, getJwtEntity(),
 				User.class);
 
 		assertEquals(HttpStatus.OK, userResponse.getStatusCode());
@@ -130,7 +142,9 @@ public class UserControllerIntegrationTests {
 	public void canHandleGetUserByInvalidUserName() throws JsonProcessingException {
 		createAndAuthorizeUser();
 
-		ResponseEntity<User> userResponse = restTemplate.exchange("http://localhost:" + port + "/api/user/" + getUser().getUsername() + TEST_INVALID_SUFFIX, HttpMethod.GET, getJwtEntity(),
+		ResponseEntity<User> userResponse = restTemplate.exchange(
+				HOST_URL + port + FIND_USER_BY_USERNAME_ENDPOINT + getUser().getUsername() + TEST_INVALID_SUFFIX, 
+				HttpMethod.GET, getJwtEntity(),
 				User.class);
 
 		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());

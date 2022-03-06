@@ -1,9 +1,9 @@
 package com.example.demo.controllers;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
@@ -32,13 +32,14 @@ import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.UserTests;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.services.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureJsonTesters
 public class UserControllerTests {
-	private static final String FIND_USER_BY_ID_ENDPOINT = "/api/user/id/";
-	private static final String CREATE_USER_ENDPOINT = "/api/user/create";
+	private static final String FIND_USER_BY_ID_ENDPOINT = UserController.FIND_USER_BY_ID_ENDPOINT;
+	private static final String CREATE_USER_ENDPOINT = UserController.CREATE_USER_ENDPOINT;
 	private static final String TEST_USERNAME = "testUsername";
 	private static final String TEST_PASSWORD = "testPassword";
 	private static final String TEST_UNMATCHED_PASSWORD = "testUnmatchedPassword";
@@ -169,7 +170,8 @@ public class UserControllerTests {
 		assertNotNull(resultActions);
 		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
 		assertNotNull(contentAsString);
-		resultActions.andExpect(jsonPath("$.id").value(user.getId()));
-		resultActions.andExpect(jsonPath("$.username").value(user.getUsername()));
+		User jsonUser = new ObjectMapper().readValue(contentAsString, User.class);
+		assertEquals(user.getId(), jsonUser.getId());
+		assertEquals(user.getUsername(), jsonUser.getUsername());
 	}
 }
