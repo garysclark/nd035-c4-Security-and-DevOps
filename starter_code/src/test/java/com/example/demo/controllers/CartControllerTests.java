@@ -34,6 +34,7 @@ import com.example.demo.model.requests.ModifyCartRequestTests;
 import com.example.demo.services.CartService;
 import com.example.demo.services.ItemService;
 import com.example.demo.services.UserService;
+import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -140,7 +141,7 @@ public class CartControllerTests {
 	private ResultActions performPostAction(ModifyCartRequest request, String endPoint)
 			throws Exception, URISyntaxException, IOException {
 		ResultActions resultActions = mockMvc.perform(
-				post(new URI(endPoint))
+				post(TestUtils.getUri(endPoint))
 				.content(json.write(request).getJson())
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON));

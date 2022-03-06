@@ -32,6 +32,7 @@ import com.example.demo.model.persistence.User;
 import com.example.demo.model.persistence.UserTests;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.services.UserService;
+import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
@@ -150,7 +151,7 @@ public class UserControllerTests {
 	private ResultActions performPostAction(CreateUserRequest request, String endPoint)
 			throws Exception, URISyntaxException, IOException {
 		ResultActions resultActions = mockMvc.perform(
-				post(new URI(endPoint))
+				post(TestUtils.getUri(endPoint))
 				.content(json.write(request).getJson())
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON));
@@ -159,7 +160,7 @@ public class UserControllerTests {
 
 	private ResultActions performGetAction(String endPoint) throws Exception, URISyntaxException {
 		ResultActions resultActions = mockMvc.perform(
-				get(new URI(endPoint))
+				get(TestUtils.getUri(endPoint))
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.APPLICATION_JSON));
 		return resultActions;

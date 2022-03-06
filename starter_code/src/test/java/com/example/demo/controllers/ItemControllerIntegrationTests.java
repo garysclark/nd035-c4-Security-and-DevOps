@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.model.persistence.Item;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
+import com.example.demo.utils.TestUtils;
 import com.example.demo.utils.UserTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -45,6 +46,12 @@ public class ItemControllerIntegrationTests {
 	private static final String TEST_INVALID_USERNAME = "invalidUserName";
 
 	private static final Long TEST_INVALID_ID = 99l;
+
+	private static final String HOST_URL = TestUtils.HOST_URL;
+
+	private static final String GET_ALL_ITEMS_ENDPOINT = ItemController.GET_ALL_ITEMS_ENDPOINT;
+	private static final String GET_ITEM_BY_ID_ENDPOINT = ItemController.GET_ITEM_BY_ID_ENDPOINT;
+	private static final String GET_ITEMS_BY_NAME_ENDPOINT = ItemController.GET_ITEMS_BY_NAME_ENDPOINT;
 
 	@LocalServerPort
 	private int port;
@@ -70,9 +77,11 @@ public class ItemControllerIntegrationTests {
 	@Test
 	public void canGetItems() throws JsonProcessingException {
 		createAndLoginUser();
-		ParameterizedTypeReference<List<Item>> responseType = new ParameterizedTypeReference<List<Item>>() {};
+		ParameterizedTypeReference<List<Item>> responseType = 
+				new ParameterizedTypeReference<List<Item>>() {};
 
-		ResponseEntity<List<Item>> response = testRestTemplate.exchange("http://localhost:" + port + "/api/item", HttpMethod.GET, getJwtEntity(),
+		ResponseEntity<List<Item>> response = testRestTemplate.exchange(
+				HOST_URL + port + GET_ALL_ITEMS_ENDPOINT, HttpMethod.GET, getJwtEntity(),
 				responseType);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -85,8 +94,9 @@ public class ItemControllerIntegrationTests {
 	public void canGetItemById() throws JsonProcessingException {
 		createAndLoginUser();
 
-		ResponseEntity<Item> response = testRestTemplate.exchange("http://localhost:" + port + "/api/item/" + TEST_ID, HttpMethod.GET, getJwtEntity(),
-				Item.class);
+		ResponseEntity<Item> response = testRestTemplate.exchange(
+				HOST_URL + port + GET_ITEM_BY_ID_ENDPOINT + TEST_ID, HttpMethod.GET, 
+				getJwtEntity(),	Item.class);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		Item item = response.getBody();
@@ -97,8 +107,9 @@ public class ItemControllerIntegrationTests {
 	public void canHandleGetItemByInvalidId() throws JsonProcessingException {
 		createAndLoginUser();
 
-		ResponseEntity<String> response = testRestTemplate.exchange("http://localhost:" + port + "/api/item/" + TEST_INVALID_ID, HttpMethod.GET, getJwtEntity(),
-				String.class);
+		ResponseEntity<String> response = testRestTemplate.exchange(
+				HOST_URL + port + GET_ITEM_BY_ID_ENDPOINT + TEST_INVALID_ID, HttpMethod.GET, 
+				getJwtEntity(), String.class);
 
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}
@@ -108,8 +119,9 @@ public class ItemControllerIntegrationTests {
 		createAndLoginUser();
 		ParameterizedTypeReference<List<Item>> responseType = new ParameterizedTypeReference<List<Item>>() {};
 
-		ResponseEntity<List<Item>> response = testRestTemplate.exchange("http://localhost:" + port + "/api/item/name/" + TEST_ITEMS.get(TEST_BY_NAME_ID - 1).getName(), HttpMethod.GET, getJwtEntity(),
-				responseType);
+		ResponseEntity<List<Item>> response = testRestTemplate.exchange(
+				HOST_URL + port + GET_ITEMS_BY_NAME_ENDPOINT + TEST_ITEMS.get(TEST_BY_NAME_ID - 1).getName(), 
+				HttpMethod.GET, getJwtEntity(),	responseType);
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		List<Item> items = response.getBody();
@@ -122,8 +134,9 @@ public class ItemControllerIntegrationTests {
 		createAndLoginUser();
 		ParameterizedTypeReference<List<Item>> responseType = new ParameterizedTypeReference<List<Item>>() {};
 
-		ResponseEntity<List<Item>> response = testRestTemplate.exchange("http://localhost:" + port + "/api/item/name/" + TEST_INVALID_USERNAME, HttpMethod.GET, getJwtEntity(),
-				responseType);
+		ResponseEntity<List<Item>> response = testRestTemplate.exchange(
+				HOST_URL + port + GET_ITEMS_BY_NAME_ENDPOINT + TEST_INVALID_USERNAME, 
+				HttpMethod.GET, getJwtEntity(),	responseType);
 
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
 	}

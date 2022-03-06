@@ -1,8 +1,8 @@
 package com.example.demo.controllers;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.UnsupportedEncodingException;
@@ -26,15 +26,19 @@ import com.example.demo.model.persistence.Item;
 import com.example.demo.model.persistence.ItemTests;
 import com.example.demo.services.ItemService;
 import com.example.demo.utils.TestUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ItemControllerTests {
 
 	private static final List<Item> TEST_ITEMS = Collections.singletonList(ItemTests.getTestItem());
-	private static final String FIND_ALL_ITEMS_ENDPOINT = "/api/item";
-	private static final String FIND_ITEM_BY_ID_ENDPOINT = "/api/item/";
-	private static final String FIND_ITEMS_BY_NAME_ENDPOINT = "/api/item/name/";
+	private static final String GET_ALL_ITEMS_ENDPOINT = ItemController.GET_ALL_ITEMS_ENDPOINT;
+	private static final String GET_ITEM_BY_ID_ENDPOINT = ItemController.GET_ITEM_BY_ID_ENDPOINT;
+	private static final String GET_ITEMS_BY_NAME_ENDPOINT = ItemController.GET_ITEMS_BY_NAME_ENDPOINT;
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -55,10 +59,10 @@ public class ItemControllerTests {
 	public void canGetItems() throws Exception {
 		BDDMockito.given(mockItemService.findAllItems()).willReturn(TEST_ITEMS);
 
-		ResultActions resultActions = performGetAction(FIND_ALL_ITEMS_ENDPOINT);
+		ResultActions resultActions = performGetAction(GET_ALL_ITEMS_ENDPOINT);
 		resultActions.andExpect(status().isOk());
 		
-		validateResponse(resultActions, "$[0].", TEST_ITEMS.get(0));
+		validateItems(TEST_ITEMS, resultActions);
 	}
 	
 	@WithMockUser
@@ -67,10 +71,10 @@ public class ItemControllerTests {
 		Item item = TEST_ITEMS.get(0);
 		BDDMockito.given(mockItemService.findItemById(item.getId())).willReturn(item);
 
-		ResultActions resultActions = performGetAction(FIND_ITEM_BY_ID_ENDPOINT + item.getId());
+		ResultActions resultActions = performGetAction(GET_ITEM_BY_ID_ENDPOINT + item.getId());
 		resultActions.andExpect(status().isOk());
 		
-		validateResponse(resultActions, "$.", TEST_ITEMS.get(0));
+		validateItem(item, resultActions);
 	}
 	
 	@WithMockUser
@@ -79,10 +83,10 @@ public class ItemControllerTests {
 		String itemName = TEST_ITEMS.get(0).getName();
 		BDDMockito.given(mockItemService.findItemsByName(itemName)).willReturn(TEST_ITEMS);
 
-		ResultActions resultActions = performGetAction(FIND_ITEMS_BY_NAME_ENDPOINT + itemName);
+		ResultActions resultActions = performGetAction(GET_ITEMS_BY_NAME_ENDPOINT + itemName);
 		resultActions.andExpect(status().isOk());
 		
-		validateResponse(resultActions, "$[0].", TEST_ITEMS.get(0));
+		validateItems(TEST_ITEMS, resultActions);
 	}
 
 	@WithMockUser
@@ -91,7 +95,7 @@ public class ItemControllerTests {
 		String itemName = TEST_ITEMS.get(0).getName();
 		BDDMockito.given(mockItemService.findItemsByName(itemName)).willReturn(new ArrayList<Item>());
 
-		ResultActions resultActions = performGetAction(FIND_ITEMS_BY_NAME_ENDPOINT + itemName);
+		ResultActions resultActions = performGetAction(GET_ITEMS_BY_NAME_ENDPOINT + itemName);
 		resultActions.andExpect(status().isNotFound());
 	}
 
@@ -103,12 +107,24 @@ public class ItemControllerTests {
 		return resultActions;
 	}
 
-	private void validateResponse(ResultActions resultActions, String responsePrefix, Item item) throws UnsupportedEncodingException, Exception {
+	private void validateItems(List<Item> expectedItems, ResultActions resultActions)
+			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
+		String contentAsString = validateContentPresent(resultActions);
+		List<Item> jsonItems = new ObjectMapper().readValue(contentAsString, new TypeReference<List<Item>>(){});
+		assertEquals(expectedItems, jsonItems);
+	}
+
+	private void validateItem(Item expectedItem, ResultActions resultActions)
+			throws UnsupportedEncodingException, JsonProcessingException, JsonMappingException {
+		String contentAsString = validateContentPresent(resultActions);
+		Item jsonItem = new ObjectMapper().readValue(contentAsString, Item.class);
+		assertEquals(expectedItem, jsonItem);
+	}
+
+	private String validateContentPresent(ResultActions resultActions) throws UnsupportedEncodingException {
 		assertNotNull(resultActions);
 		String contentAsString = resultActions.andReturn().getResponse().getContentAsString();
 		assertNotNull(contentAsString);
-		resultActions.andExpect(jsonPath(responsePrefix + "id").value(item.getId()));
-		resultActions.andExpect(jsonPath(responsePrefix + "name").value(item.getName()));
-		resultActions.andExpect(jsonPath(responsePrefix + "description").value(item.getDescription()));
+		return contentAsString;
 	}
 }

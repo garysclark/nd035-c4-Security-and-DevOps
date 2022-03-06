@@ -13,9 +13,16 @@ import com.example.demo.model.persistence.Item;
 import com.example.demo.services.ItemService;
 
 @RestController
-@RequestMapping("/api/item")
+@RequestMapping(ItemController.API_ITEM_ENDPOINT)
 public class ItemController {
 	
+	private static final String GET_ITEM_BY_NAME_ENDPOINT_PART = "/name/{name}";
+	private static final String GET_ITEM_BY_ID_ENDPOINT_PART = "/{id}";
+	public static final String API_ITEM_ENDPOINT = "/api/item";
+	public static final String GET_ALL_ITEMS_ENDPOINT = API_ITEM_ENDPOINT;
+	public static final String GET_ITEMS_BY_NAME_ENDPOINT = API_ITEM_ENDPOINT + "/name/";
+	public static final String GET_ITEM_BY_ID_ENDPOINT = API_ITEM_ENDPOINT + "/";
+
 	@Autowired
 	private ItemService itemService;
 	
@@ -24,12 +31,12 @@ public class ItemController {
 		return ResponseEntity.ok(itemService.findAllItems());
 	}
 	
-	@GetMapping("/{id}")
+	@GetMapping(GET_ITEM_BY_ID_ENDPOINT_PART)
 	public ResponseEntity<Item> getItemById(@PathVariable Long id) {
 		return ResponseEntity.ok(itemService.findItemById(id));
 	}
 	
-	@GetMapping("/name/{name}")
+	@GetMapping(GET_ITEM_BY_NAME_ENDPOINT_PART)
 	public ResponseEntity<List<Item>> getItemsByName(@PathVariable String name) {
 		List<Item> items = itemService.findItemsByName(name);
 		return items.isEmpty() ? ResponseEntity.notFound().build()
