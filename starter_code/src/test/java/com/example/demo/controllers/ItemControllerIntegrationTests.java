@@ -34,9 +34,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 @Transactional
 public class ItemControllerIntegrationTests {
 
-	private static final List<Item> TEST_ITEMS = Arrays.asList(
-			new Item(null,"Round Widget", new BigDecimal("2.99"), "A widget that is round"),
-			new Item(null, "Square Widget", new BigDecimal("1.99"), "A widget that is square"));
+	public static final List<Item> TEST_ITEMS = Arrays.asList(
+			new Item(1l,"Round Widget", new BigDecimal("2.99"), "A widget that is round"),
+			new Item(2l, "Square Widget", new BigDecimal("1.99"), "A widget that is square"));
 
 	private static final int TEST_ID = 1;
 
@@ -136,9 +136,7 @@ public class ItemControllerIntegrationTests {
 	}
 
 	private void validateItem(Item item1, Item item2) {
-		assertEquals(item1.getName(), item2.getName());
-		assertEquals(item1.getPrice(), item2.getPrice());
-		assertEquals(item1.getDescription(), item2.getDescription());
+		assertEquals(item1, item2);
 	}
 
 	private HttpEntity<String> getJwtEntity() {

@@ -95,16 +95,6 @@ public class ItemControllerTests {
 		resultActions.andExpect(status().isNotFound());
 	}
 
-	@WithMockUser
-	@Test
-	public void canHandleGetItemsByInvalidNameNullResponse() throws Exception {
-		String itemName = TEST_ITEMS.get(0).getName();
-		BDDMockito.given(mockItemService.findItemsByName(itemName)).willReturn(null);
-
-		ResultActions resultActions = performGetAction(FIND_ITEMS_BY_NAME_ENDPOINT + itemName);
-		resultActions.andExpect(status().isNotFound());
-	}
-
 	private ResultActions performGetAction(String rawPath) throws Exception, URISyntaxException {
 		ResultActions resultActions = mockMvc.perform(
 				get(TestUtils.getUri(rawPath))
