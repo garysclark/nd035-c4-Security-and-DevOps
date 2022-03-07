@@ -42,7 +42,7 @@ public class OrderControllerTests {
 
 	private static final String GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT = OrderController.GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT;
 
-	private static final String TEST_INVALID_USER_NAME = "invlaidUser";
+	private static final String TEST_INVALID_USER_NAME = "invalidUser";
 
 	@Autowired
 	private MockMvc mockMvc;

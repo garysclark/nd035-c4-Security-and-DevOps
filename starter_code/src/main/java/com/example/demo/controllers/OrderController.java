@@ -2,6 +2,8 @@ package com.example.demo.controllers;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +32,8 @@ public class OrderController {
 
 	public static final String SUBMIT_ORDER_BY_USERNAME_ENDPOINT = API_ORDER_ENDPOINT + "/submit/";
 
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
 	@Autowired
 	private UserService userService;
 	
@@ -40,7 +44,9 @@ public class OrderController {
 	@PostMapping(SUBMIT_ORDER_BY_USERNAME_ENDPOINT_PART)
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
 		User user = userService.findUserByUserName(username);
+		logger.info("Submitting an order for user {}", username);
 		if(user == null) {
+			logger.error("Order not submitted - Invalid user {}", username);
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
@@ -51,7 +57,9 @@ public class OrderController {
 	@GetMapping(GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT_PART)
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userService.findUserByUserName(username);
+		logger.info("Getting order history for user {}", username);
 		if(user == null) {
+			logger.error("Order history not retrieved - Invalid user {}", username);
 			return ResponseEntity.notFound().build();
 		}
 		return ResponseEntity.ok(orderService.findOrdersByUser(user));
