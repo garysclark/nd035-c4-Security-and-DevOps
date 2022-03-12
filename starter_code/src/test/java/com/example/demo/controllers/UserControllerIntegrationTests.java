@@ -22,9 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.model.persistence.User;
 import com.example.demo.model.requests.CreateUserRequest;
 import com.example.demo.model.requests.CreateUserRequestTests;
-import com.example.demo.utils.UserTestUtils;
 import com.example.demo.utils.LoginUserRequest;
 import com.example.demo.utils.TestUtils;
+import com.example.demo.utils.UserTestUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
