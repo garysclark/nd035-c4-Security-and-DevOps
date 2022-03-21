@@ -95,6 +95,15 @@ public class UserControllerTests {
 		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
 		resultActions.andExpect(status().isBadRequest());
 	}
+	
+	@Test
+	public void canHandleCreateExistingUserError() throws URISyntaxException, IOException, Exception {
+		User foundUser = UserTests.getTestUser(TEST_ID, TEST_USERNAME, TEST_PASSWORD, new Cart());
+		BDDMockito.given(mockUserService.findUserByUserName(TEST_USERNAME)).willReturn(foundUser);
+		CreateUserRequest request = createUserRequest(TEST_USERNAME, TEST_PASSWORD, TEST_PASSWORD);
+		ResultActions resultActions = performPostAction(request, CREATE_USER_ENDPOINT);
+		resultActions.andExpect(status().isBadRequest());
+	}
 
 	@WithMockUser
 	@Test

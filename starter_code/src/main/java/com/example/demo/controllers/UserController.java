@@ -56,19 +56,24 @@ public class UserController {
 	
 	@PostMapping(CREATE_USER_ENDPOINT_PART)
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
-		logger.info("Creating user {}", createUserRequest.getUsername());
+		logger.info("Creating user - {}", createUserRequest.getUsername());
+		if(userService.findUserByUserName(createUserRequest.getUsername()) != null){
+			logger.error("CREATE USER - FAILED - User already exists: {}", createUserRequest.getUsername());
+			return ResponseEntity.badRequest().build();
+		}
 		User user = new User();
 		user.setUsername(createUserRequest.getUsername());
 		
 		if(createUserRequest.getPassword().length() < 7 ||
 				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
-			logger.error("Password error.  Cannot create user {}", createUserRequest.getUsername());
+			logger.error("CREATE USER - FAILED - Password error: {}", createUserRequest.getUsername());
 			return ResponseEntity.badRequest().build();
 		}
 		
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		
 		User savedUser = userService.saveUser(user);
+		logger.info("CREATE USER - SUCCESS - User created - {}", createUserRequest.getUsername());
 		return ResponseEntity.ok(savedUser);
 	}
 	
