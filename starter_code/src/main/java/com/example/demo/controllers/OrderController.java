@@ -46,11 +46,12 @@ public class OrderController {
 		User user = userService.findUserByUserName(username);
 		logger.info("Submitting an order for user {}", username);
 		if(user == null) {
-			logger.error("Order not submitted - Invalid user {}", username);
+			logger.error("SUBMIT ORDER REQUEST - FAILED - Order not submitted - Invalid user {}", username);
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
 		UserOrder savedUserOrder = orderService.saveOrder(order);
+		logger.info("SUBMIT ORDER REQUEST - SUCCESS - Order submitted for user {}", username);
 		return ResponseEntity.ok(savedUserOrder);
 	}
 	
@@ -59,9 +60,10 @@ public class OrderController {
 		User user = userService.findUserByUserName(username);
 		logger.info("Getting order history for user {}", username);
 		if(user == null) {
-			logger.error("Order history not retrieved - Invalid user {}", username);
+			logger.error("ORDER HISTORY REQUEST - FAILED - Order history not retrieved - Invalid user {}", username);
 			return ResponseEntity.notFound().build();
 		}
+		logger.info("ORDER HISTORY REQUEST - SUCCESS - Retrived order history for user {}", username);
 		return ResponseEntity.ok(orderService.findOrdersByUser(user));
 	}
 }
