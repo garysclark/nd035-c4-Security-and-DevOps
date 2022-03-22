@@ -22,6 +22,18 @@ import com.example.demo.services.UserService;
 public class OrderController {
 	
 	
+	private static final String LOG_INFO_ORDER_HISTORY_REQUEST_SUCCESS = "ORDER HISTORY REQUEST - SUCCESS - Retrived order history for user {}";
+
+	private static final String LOG_ERROR_ORDER_HISTORY_REQUEST_FAILED_INVALID_USER = "ORDER HISTORY REQUEST - FAILED - Order history not retrieved - Invalid user {}";
+
+	private static final String LOG_INFO_GETTING_ORDER_HISTORY_FOR_USER = "Getting order history for user {}";
+
+	private static final String LOG_INFO_SUBMIT_ORDER_REQUEST_SUCCESS = "SUBMIT ORDER REQUEST - SUCCESS - Order submitted for user {}";
+
+	private static final String LOG_ERROR_SUBMIT_ORDER_REQUEST_FAILED_INVALID_USER = "SUBMIT ORDER REQUEST - FAILED - Order not submitted - Invalid user {}";
+
+	private static final String LOG_INFO_SUBMITTING_AN_ORDER_FOR_USER = "Submitting an order for user {}";
+
 	private static final String GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT_PART = "/history/{username}";
 
 	private static final String SUBMIT_ORDER_BY_USERNAME_ENDPOINT_PART = "/submit/{username}";
@@ -44,26 +56,26 @@ public class OrderController {
 	@PostMapping(SUBMIT_ORDER_BY_USERNAME_ENDPOINT_PART)
 	public ResponseEntity<UserOrder> submit(@PathVariable String username) {
 		User user = userService.findUserByUserName(username);
-		logger.info("Submitting an order for user {}", username);
+		logger.info(LOG_INFO_SUBMITTING_AN_ORDER_FOR_USER, username);
 		if(user == null) {
-			logger.error("SUBMIT ORDER REQUEST - FAILED - Order not submitted - Invalid user {}", username);
+			logger.error(LOG_ERROR_SUBMIT_ORDER_REQUEST_FAILED_INVALID_USER, username);
 			return ResponseEntity.notFound().build();
 		}
 		UserOrder order = UserOrder.createFromCart(user.getCart());
 		UserOrder savedUserOrder = orderService.saveOrder(order);
-		logger.info("SUBMIT ORDER REQUEST - SUCCESS - Order submitted for user {}", username);
+		logger.info(LOG_INFO_SUBMIT_ORDER_REQUEST_SUCCESS, username);
 		return ResponseEntity.ok(savedUserOrder);
 	}
 	
 	@GetMapping(GET_ORDER_HISTORY_BY_USERNAME_ENDPOINT_PART)
 	public ResponseEntity<List<UserOrder>> getOrdersForUser(@PathVariable String username) {
 		User user = userService.findUserByUserName(username);
-		logger.info("Getting order history for user {}", username);
+		logger.info(LOG_INFO_GETTING_ORDER_HISTORY_FOR_USER, username);
 		if(user == null) {
-			logger.error("ORDER HISTORY REQUEST - FAILED - Order history not retrieved - Invalid user {}", username);
+			logger.error(LOG_ERROR_ORDER_HISTORY_REQUEST_FAILED_INVALID_USER, username);
 			return ResponseEntity.notFound().build();
 		}
-		logger.info("ORDER HISTORY REQUEST - SUCCESS - Retrived order history for user {}", username);
+		logger.info(LOG_INFO_ORDER_HISTORY_REQUEST_SUCCESS, username);
 		return ResponseEntity.ok(orderService.findOrdersByUser(user));
 	}
 }

@@ -20,6 +20,14 @@ import com.example.demo.services.UserService;
 @RequestMapping(UserController.API_USER_ENDPOINT)
 public class UserController {
 	
+	private static final String LOG_INFO_CREATE_USER_SUCCESS = "CREATE USER - SUCCESS - User created - {}";
+
+	private static final String LOG_ERROR_CREATE_USER_FAILED_PASSWORD_ERROR = "CREATE USER - FAILED - Password error: {}";
+
+	private static final String LOG_ERROR_CREATE_USER_FAILED_USER_ALREADY_EXISTS = "CREATE USER - FAILED - User already exists: {}";
+
+	private static final String LOG_INFO_CREATING_USER = "Creating user - {}";
+
 	private static final String CREATE_USER_ENDPOINT_PART = "/create";
 
 	private static final String FIND_USER_BY_USERNAME_ENDPOINT_PART = "/{username}";
@@ -56,9 +64,9 @@ public class UserController {
 	
 	@PostMapping(CREATE_USER_ENDPOINT_PART)
 	public ResponseEntity<User> createUser(@RequestBody CreateUserRequest createUserRequest) {
-		logger.info("Creating user - {}", createUserRequest.getUsername());
+		logger.info(LOG_INFO_CREATING_USER, createUserRequest.getUsername());
 		if(userService.findUserByUserName(createUserRequest.getUsername()) != null){
-			logger.error("CREATE USER - FAILED - User already exists: {}", createUserRequest.getUsername());
+			logger.error(LOG_ERROR_CREATE_USER_FAILED_USER_ALREADY_EXISTS, createUserRequest.getUsername());
 			return ResponseEntity.badRequest().build();
 		}
 		User user = new User();
@@ -66,14 +74,14 @@ public class UserController {
 		
 		if(createUserRequest.getPassword().length() < 7 ||
 				!createUserRequest.getPassword().equals(createUserRequest.getConfirmPassword())) {
-			logger.error("CREATE USER - FAILED - Password error: {}", createUserRequest.getUsername());
+			logger.error(LOG_ERROR_CREATE_USER_FAILED_PASSWORD_ERROR, createUserRequest.getUsername());
 			return ResponseEntity.badRequest().build();
 		}
 		
 		user.setPassword(bCryptPasswordEncoder.encode(createUserRequest.getPassword()));
 		
 		User savedUser = userService.saveUser(user);
-		logger.info("CREATE USER - SUCCESS - User created - {}", createUserRequest.getUsername());
+		logger.info(LOG_INFO_CREATE_USER_SUCCESS, createUserRequest.getUsername());
 		return ResponseEntity.ok(savedUser);
 	}
 	
