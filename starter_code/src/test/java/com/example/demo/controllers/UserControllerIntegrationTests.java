@@ -88,6 +88,15 @@ public class UserControllerIntegrationTests {
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
+	
+	@Test
+	public void canHandleCreateExistingUserError() throws JsonProcessingException {
+		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
+		userTestUtils.createUser(request);
+		ResponseEntity<User> response = userTestUtils.createUser(request);
+		
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
 
 	@Test
 	public void canCreateUserAndLogin() throws JsonProcessingException {
@@ -107,7 +116,7 @@ public class UserControllerIntegrationTests {
 		ResponseEntity<String> response = userTestUtils.login(loginUserRequest);
 
 		assertNotNull(response);
-		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+		assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
 	}
 
 	@Test
@@ -162,9 +171,9 @@ public class UserControllerIntegrationTests {
 		assertEquals(HttpStatus.NOT_FOUND, userResponse.getStatusCode());
 	}
 
-	private void createAndAuthorizeUser() throws JsonProcessingException {
+	private ResponseEntity<String> createAndAuthorizeUser() throws JsonProcessingException {
 		CreateUserRequest request = CreateUserRequestTests.getTestCreateUserRequest();
-		userTestUtils.createAndLoginUser(request);
+		return userTestUtils.createAndLoginUser(request);
 	}
 
 	private User getUser() {
